@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>properties list ::</h3>
+    {% for property in properties %}
+        <div class="card">
+            <img src="{% property.image.url %}" alt="">
+            <div >
+                || property.name ||
+                <p>property.description</p>
+                <p>property.location</p>
+            </div>
+        </div>
+
+{% endblock %}

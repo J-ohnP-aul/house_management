@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>{{ property.name }}</h1>
+
+<p>{{ property.created_at }}</p>
+
+<img src="{{ property.image.url }}" class="img-fluid mb-4">
+
+<p>{{ property.description }}</p>
+
+{% endblock %}
