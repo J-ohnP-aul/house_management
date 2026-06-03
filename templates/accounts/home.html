@@ -4,49 +4,43 @@
 {% block title %}Welcome | House Rental Management{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h1 class="display-4 mb-4">House Rental Management System</h1>
-            <p class="lead mb-4">
-                Manage your properties, tenants, rent payments, and expenses all in one place.
-            </p>
-            
-            {% if not user.is_authenticated %}
-                <div class="mt-4">
-                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg mx-2">Login</a>
-                </div>
-            {% else %}
-                <div class="mt-4">
-                    <a href="{% url 'dashboard' %}" class="btn btn-success btn-lg">Go to Dashboard</a>
-                </div>
-            {% endif %}
-        </div>
+<div class="container">
+    <div class="card" style="text-align: center; margin: 2rem 0;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">House Rental Management System</h1>
+        <p style="font-size: 1.25rem; margin-bottom: 1.5rem;">
+            Manage your properties, tenants, rent payments, and expenses all in one place.
+        </p>
+        
+        {% if not user.is_authenticated %}
+            <div style="margin-top: 1rem;">
+                <a href="{% url 'login' %}" class="btn btn-primary" style="margin: 0 0.5rem; padding: 0.75rem 1.5rem; font-size: 1.1rem;">Login</a>
+            </div>
+        {% else %}
+            <div style="margin-top: 1rem;">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary" style="background-color: #28a745; margin: 0 0.5rem; padding: 0.75rem 1.5rem; font-size: 1.1rem;">Go to Dashboard</a>
+            </div>
+        {% endif %}
     </div>
     
-    <div class="row mt-5 pt-5">
-        <div class="col-md-4 text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h3>🏠 Properties</h3>
-                    <p>Manage multiple properties and units</p>
-                </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div class="card" style="text-align: center;">
+            <div class="card-body">
+                <h3 style="font-size: 1.75rem; margin-bottom: 0.5rem;">🏠 Properties</h3>
+                <p>Manage multiple properties and units</p>
             </div>
         </div>
-        <div class="col-md-4 text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h3>👥 Tenants</h3>
-                    <p>Track tenants and occupancy</p>
-                </div>
+        
+        <div class="card" style="text-align: center;">
+            <div class="card-body">
+                <h3 style="font-size: 1.75rem; margin-bottom: 0.5rem;">👥 Tenants</h3>
+                <p>Track tenants and occupancy</p>
             </div>
         </div>
-        <div class="col-md-4 text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h3>💰 Rent</h3>
-                    <p>Monitor payments and arrears</p>
-                </div>
+        
+        <div class="card" style="text-align: center;">
+            <div class="card-body">
+                <h3 style="font-size: 1.75rem; margin-bottom: 0.5rem;">💰 Rent</h3>
+                <p>Monitor payments and arrears</p>
             </div>
         </div>
     </div>

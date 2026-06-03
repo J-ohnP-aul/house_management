@@ -3,40 +3,40 @@
 {% block title %}Login | House Rental Management{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">Login</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                Invalid username or password. Please try again.
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Username</label>
-                            <input type="text" name="username" id="id_username" 
-                                   class="form-control" required>
+<div class="container">
+    <div style="max-width: 500px; margin: 2rem auto;">
+        <div class="card">
+            <div class="card-header">
+                <h3 style="text-align: center; margin: 0;">Login</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger" style="margin-bottom: 1rem;">
+                            Invalid username or password. Please try again.
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">Password</label>
-                            <input type="password" name="password" id="id_password" 
-                                   class="form-control" required>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Login</button>
-                        </div>
-                    </form>
-                </div>
+                    {% endif %}
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="id_username" style="display: block; margin-bottom: 0.5rem;">Username</label>
+                        <input type="text" name="username" id="id_username" 
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;" 
+                               required>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="id_password" style="display: block; margin-bottom: 0.5rem;">Password</label>
+                        <input type="password" name="password" id="id_password" 
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;" 
+                               required>
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem;">Login</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

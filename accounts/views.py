@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from .models import User
 from .forms import CustomUserCreationForm
+from properties.models import Property, Unit
+from tenants.models import Tenant
 
 
 def home(request):
@@ -16,17 +18,19 @@ def home(request):
 
 @login_required
 def dashboard(request):
-    """Temporary dashboard - will be replaced in Step 7"""
+    units = Unit.objects.all()
+    properties = Property.objects.all()
+    
     context = {
         'user': request.user,
-        'total_properties': 0,  # Placeholder
-        'total_units': 0,       # Placeholder
-        'occupied_units': 0,    # Placeholder
-        'vacant_units': 0,      # Placeholder
-        'reserved_units': 0,    # Placeholder
-        'monthly_income': 0,    # Placeholder
-        'monthly_expenses': 0,  # Placeholder
-        'outstanding_arrears': 0,  # Placeholder
+        'total_properties': properties.count(),
+        'total_units': units.count(),
+        'occupied_units': units.filter(status='Occupied').count(),
+        'vacant_units': units.filter(status='Vacant').count(),
+        'reserved_units': units.filter(status='Reserved').count(),
+        'monthly_income': 0,
+        'monthly_expenses': 0,
+        'outstanding_arrears': 0,
     }
     return render(request, 'accounts/dashboard.html', context)
 

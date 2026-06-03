@@ -7,7 +7,7 @@ from .forms import CustomAuthenticationForm
 
 urlpatterns = [
     # Home page
-    path('', views.home, name='home'),
+    path('home/', views.home, name='home'),
     
     # Login/Logout
     path('login/', auth_views.LoginView.as_view(
