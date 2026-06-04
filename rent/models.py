@@ -1,6 +1,4 @@
 # from django.utils import timezone
-from django.db import settings
-
 from django.db import models
 from django.conf import settings
 from tenants.models import Tenancy
@@ -43,7 +41,6 @@ class LedgerEntry(models.Model):
         related_name='ledger_entries',
         null=True,
         blank=True,
-        related_name='entries'
     )
     billing_year = models.PositiveIntegerField()
     billing_month = models.PositiveSmallIntegerField()
@@ -103,7 +100,7 @@ class RentCyle(models.Model):
     month = models.PositiveSmallIntegerField()
     year = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=OPEN)
-    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='generated_rent_ cycles')    
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='generated_rent_cycles')    
     generated_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         unique_together = ('month', 'year')
