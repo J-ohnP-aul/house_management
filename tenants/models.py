@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from properties.models import Unit
+from django.db.models import Sum
 
 class Tenant(models.Model):
     full_name = models.CharField(max_length=50)
@@ -74,7 +75,23 @@ class Tenancy(models.Model):
                 existing = existing.exclude(pk=self.pk)
             if existing.exists():
                 raise ValidationError("This unit already has an active tenancy.")
-                
+    
+    @property
+    def monthly_rent(self):
+        return self.unit.monthly_rent
+    
+    @property
+    def current_balance(self):
+        from rent.models import LedgerEntry
+        totals = LedgerEntry.objects.filter(tenancy=self).aggregate(
+            debit=Sum('debit'),
+            credit=Sum('credit')
+        )
+        debit=totals['debit'] or 0,
+        credit=totals['credit'] or 0
+        
+        return debit - credit
+
     def save(self, *args, **kwargs):
         # 1. Run all validations first
         self.full_clean()
