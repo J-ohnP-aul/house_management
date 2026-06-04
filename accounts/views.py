@@ -20,6 +20,7 @@ def home(request):
 def dashboard(request):
     units = Unit.objects.all()
     properties = Property.objects.all()
+    tenants = Tenant.objects.all()
     
     context = {
         'user': request.user,
@@ -31,6 +32,7 @@ def dashboard(request):
         'monthly_income': 0,
         'monthly_expenses': 0,
         'outstanding_arrears': 0,
+        
     }
     return render(request, 'accounts/dashboard.html', context)
 

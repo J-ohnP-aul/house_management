@@ -21,6 +21,14 @@ class Tenant(models.Model):
     def __str__(self):
         return self.full_name
     
+    @property
+    def current_tenant(self):
+        tenancy = self.tenancies_by_unit.filter(
+            status='ACTIVE'
+        ).first()
+
+        return tenancy.tenant if tenancy else None
+    
 
 class Tenancy(models.Model):
     ACTIVE = 'ACTIVE'
@@ -33,7 +41,7 @@ class Tenancy(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT, related_name='tenancies_by_unit')
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT, related_name='tenancies')
     move_in_date = models.DateField()
-    move_out_date = models.DateField(blank=True, null=True)
+    move_out_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

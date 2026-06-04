@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h2>Assign Units</h2>
+
+    <a href="{% url 'tenancy_create' %}"
+       class="btn btn-primary">
+
+        Assign Unit
+
+    </a>
+
+</div>
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+            <th>Tenant</th>
+            <th>Unit</th>
+            <th>Move In</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for tenancy in tenancies %}
+
+        <tr>
+
+            <td>{{ tenancy.tenant }}</td>
+
+            <td>{{ tenancy.unit }}</td>
+
+            <td>{{ tenancy.move_in_date }}</td>
+
+            <td>{{ tenancy.status }}</td>
+
+            <td>
+
+                <a href="{% url 'tenancy_update' tenancy.id %}">
+                    Edit
+                </a>
+
+                |
+
+                {% if tenancy.status == 'ACTIVE' %}
+
+                <a href="{% url 'tenancy_moved_out' tenancy.id %}">
+                    Move Out
+                </a>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h2>Reservations</h2>
+
+    <a href="{% url 'reservation_create' %}"
+       class="btn btn-primary">
+
+        New Reservation
+
+    </a>
+
+</div>
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+            <th>Name</th>
+            <th>Unit</th>
+            <th>Deposit</th>
+            <th>Expected Move In</th>
+            <th>Status</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for reservation in reservations %}
+
+        <tr>
+
+            <td>{{ reservation.full_name }}</td>
+
+            <td>{{ reservation.unit }}</td>
+
+            <td>{{ reservation.deposit_amount }}</td>
+
+            <td>
+                {{ reservation.expected_movein_date }}
+            </td>
+
+            <td>
+                {{ reservation.status }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

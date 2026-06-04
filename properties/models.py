@@ -82,13 +82,13 @@ class Unit(models.Model):
         auto_now=True
     )
     
-    # @property
-    # def current_tenant(self): #unit.current_tenant usage
-    #     tenancy = self.tenancies_by_unit.filter(
-    #         status='ACTIVE'
-    #     ).first()
+    @property
+    def current_tenant(self): #unit.current_tenant usage
+        tenancy = self.tenancies_by_unit.filter(
+            status='ACTIVE'
+        ).first()
 
-    #     return tenancy.tenant if tenancy else None
+        return tenancy.tenant if tenancy else None
     
     class Meta:
         ordering = ['parent_property', 'unit_number']

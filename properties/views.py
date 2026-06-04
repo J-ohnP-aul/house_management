@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Sum, Case, When, Value, IntegerField, FloatField, ExpressionWrapper, F
+
 from .models import Property, Unit
 from .forms import PropertyForm, UnitForm
-from django.contrib.auth.decorators import login_required
 from tenants.models import Tenant
 
 # Create your views here.
@@ -11,25 +13,40 @@ def property_create(request):
         form = PropertyForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect ('property_list')
+            return redirect('property_list')
     else:
         form = PropertyForm()
-    return render(request, 'property/p_create.html', {'form':form})
+    return render(request, 'property/p_create.html', {'form': form})
 
 @login_required
 def property_list(request):
-    units = Unit.objects.all()
-    
-    context = {
-        'user': request.user,
-        'total_properties': properties.count(),
-        'total_units': units.count(),
-        'occupied_units': units.filter(status='Occupied').count(),
-        'vacant_units': units.filter(status='Vacant').count(),
-        'reserved_units': units.filter(status='Reserved').count(),
-    }
-    properties = Property.objects.order_by('-created_at')
-    return render(request, 'property/p_list.html', {'properties':properties, 'context':context})
+    properties = Property.objects.order_by('-created_at').annotate(
+        units_count=Count('units'),
+        occupied_count=Sum(
+            Case(
+                When(units__status=Unit.OCCUPIED, then=1),
+                default=0,
+                output_field=IntegerField(),
+            )
+        ),
+        vacant_count=Sum(
+            Case(
+                When(units__status=Unit.VACANT, then=1),
+                default=0,
+                output_field=IntegerField(),
+            )
+        ),
+    ).annotate(
+        occupancy_pct=ExpressionWrapper(
+            Case(
+                When(units_count=0, then=Value(0.0)),
+                default=F('occupied_count') * 100.0 / F('units_count'),
+                output_field=FloatField(),
+            ),
+            output_field=FloatField(),
+        )
+    )
+    return render(request, 'property/p_list.html', {'properties': properties})
 
 @login_required
 def property_detail(request, id):

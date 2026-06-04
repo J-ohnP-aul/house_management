@@ -1,10 +1,15 @@
-
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard | Rental Manager{% endblock %}
 {% block topbar_title %}Dashboard{% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="db-dashboard">
 
 <!-- Page Header -->
 <div class="page-header">
@@ -13,7 +18,7 @@
         <p>Here's what's happening across your properties today.</p>
     </div>
     {% if user.role == 'OWNER' or user.role == 'MANAGER' %}
-    <div style="display:flex; gap:10px;">
+    <div class="db-dashboard__header-actions">
         <a href="{% url 'unit_create' %}" class="btn btn-secondary">
             <i class="fas fa-plus"></i> Add Unit
         </a>
@@ -25,7 +30,7 @@
 </div>
 
 <!-- ── KPI STAT CARDS ── -->
-<div class="stat-grid">
+<div class="stat-grid db-dashboard__stat-grid">
     <div class="stat-card">
         <div class="stat-header">
             <div class="stat-icon blue"><i class="fas fa-building"></i></div>
@@ -63,15 +68,15 @@
 </div>
 
 <!-- ── ROW 2: Occupancy + Overdue Rent ── -->
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+<div class="db-dashboard__row db-dashboard__row--two">
 
     <!-- Occupancy Breakdown -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title"><i class="fas fa-th" style="margin-right:7px; color:var(--brand);"></i>Occupancy Overview</span>
+            <span class="card-title"><i class="fas fa-th db-dashboard__card-title-icon db-dashboard__card-title-icon--brand"></i>Occupancy Overview</span>
             <a href="{% url 'unit_list' %}" class="btn btn-secondary btn-sm">View All</a>
         </div>
-        <div class="card-body" style="padding: 0;">
+        <div class="card-body db-dashboard__card-body--flush">
             <table>
                 <thead>
                     <tr>
@@ -85,25 +90,25 @@
                     <tr>
                         <td><span class="badge badge-green">Occupied</span></td>
                         <td><strong>{{ occupied_units|default:"0" }}</strong></td>
-                        <td style="color:var(--txt-muted);">{{ occupancy_rate|default:"0" }}%</td>
-                        <td style="width:120px;">
-                            <div class="progress"><div class="progress-bar" style="width:{{ occupancy_rate|default:'0' }}%; background:var(--green);"></div></div>
+                        <td class="db-dashboard__text-muted">{{ occupancy_rate|default:"0" }}%</td>
+                        <td class="db-dashboard__status-cell">
+                            <div class="progress db-dashboard__progress"><div class="progress-bar db-dashboard__progress-bar db-dashboard__progress-bar--green" style="width:{{ occupancy_rate|default:'0' }}%;"></div></div>
                         </td>
                     </tr>
                     <tr>
                         <td><span class="badge badge-amber">Reserved</span></td>
                         <td><strong>{{ reserved_units|default:"0" }}</strong></td>
-                        <td style="color:var(--txt-muted);">{{ reserved_rate|default:"0" }}%</td>
+                        <td class="db-dashboard__text-muted">{{ reserved_rate|default:"0" }}%</td>
                         <td>
-                            <div class="progress"><div class="progress-bar" style="width:{{ reserved_rate|default:'0' }}%; background:var(--amber);"></div></div>
+                            <div class="progress db-dashboard__progress"><div class="progress-bar db-dashboard__progress-bar db-dashboard__progress-bar--amber" style="width:{{ reserved_rate|default:'0' }}%;"></div></div>
                         </td>
                     </tr>
                     <tr>
                         <td><span class="badge badge-gray">Vacant</span></td>
                         <td><strong>{{ vacant_units|default:"0" }}</strong></td>
-                        <td style="color:var(--txt-muted);">{{ vacant_rate|default:"0" }}%</td>
+                        <td class="db-dashboard__text-muted">{{ vacant_rate|default:"0" }}%</td>
                         <td>
-                            <div class="progress"><div class="progress-bar" style="width:{{ vacant_rate|default:'0' }}%; background:var(--txt-muted);"></div></div>
+                            <div class="progress db-dashboard__progress"><div class="progress-bar db-dashboard__progress-bar db-dashboard__progress-bar--gray" style="width:{{ vacant_rate|default:'0' }}%;"></div></div>
                         </td>
                     </tr>
                 </tbody>
@@ -114,10 +119,10 @@
     <!-- Overdue Rent Alerts -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title"><i class="fas fa-exclamation-triangle" style="margin-right:7px; color:var(--red);"></i>Overdue Rent</span>
+            <span class="card-title"><i class="fas fa-exclamation-triangle db-dashboard__card-title-icon db-dashboard__card-title-icon--red"></i>Overdue Rent</span>
             <a href="#" class="btn btn-secondary btn-sm">View All</a>
         </div>
-        <div class="card-body" style="padding:0;">
+        <div class="card-body db-dashboard__card-body--flush">
             {% if overdue_tenants %}
                 <table>
                     <thead>
@@ -127,13 +132,13 @@
                         {% for t in overdue_tenants|slice:":5" %}
                         <tr>
                             <td>
-                                <div style="display:flex; align-items:center; gap:9px;">
-                                    <div class="avatar" style="width:28px;height:28px;font-size:10px;">{{ t.full_name|first|upper }}</div>
+                                <div class="db-dashboard__avatar-row">
+                                    <div class="avatar db-dashboard__avatar--sm">{{ t.full_name|first|upper }}</div>
                                     {{ t.full_name }}
                                 </div>
                             </td>
-                            <td style="color:var(--txt-secondary);">{{ t.unit_number }}</td>
-                            <td><strong style="color:var(--red);">KES {{ t.amount_owed|floatformat:"0" }}</strong></td>
+                            <td class="db-dashboard__muted-text">{{ t.unit_number }}</td>
+                            <td><strong class="db-dashboard__amount-owed">KES {{ t.amount_owed|floatformat:"0" }}</strong></td>
                             <td><span class="badge badge-red">{{ t.days_overdue }}d</span></td>
                         </tr>
                         {% endfor %}
@@ -141,7 +146,7 @@
                 </table>
             {% else %}
                 <div class="empty-state">
-                    <i class="fas fa-check-circle" style="color:var(--green); opacity:1;"></i>
+                    <i class="fas fa-check-circle db-dashboard__empty-state-icon db-dashboard__empty-state-icon--success"></i>
                     <h3>All up to date</h3>
                     <p>No overdue rent at the moment.</p>
                 </div>
@@ -150,21 +155,21 @@
     </div>
 </div>
 
-<!-- ── ROW 3: Recent Properties + Maintenance ── -->
-<div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:20px;">
+<!-- ── ROW 3: Recent Properties + Tenants + Maintenance ── -->
+<div class="db-dashboard__row db-dashboard__row--three">
 
     <!-- Recent Properties -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title"><i class="fas fa-building" style="margin-right:7px; color:var(--brand);"></i>Properties</span>
-            <div style="display:flex; gap:8px;">
+            <span class="card-title"><i class="fas fa-building db-dashboard__card-title-icon db-dashboard__card-title-icon--brand"></i>Properties</span>
+            <div class="db-dashboard__card-actions">
                 <a href="{% url 'property_create' %}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Add
                 </a>
                 <a href="{% url 'property_list' %}" class="btn btn-secondary btn-sm">Manage</a>
             </div>
         </div>
-        <div class="card-body" style="padding:0;">
+        <div class="card-body db-dashboard__card-body--flush">
             {% if recent_properties %}
             <div class="table-wrap">
                 <table>
@@ -181,25 +186,23 @@
                         {% for property in recent_properties %}
                         <tr>
                             <td>
-                                <div style="font-weight:500;">{{ property.name }}</div>
+                                <div class="db-dashboard__strong-text">{{ property.name }}</div>
                             </td>
-                            <td style="color:var(--txt-secondary); font-size:13px;">{{ property.location|truncatechars:28 }}</td>
+                            <td class="db-dashboard__muted-text db-dashboard__small-text">{{ property.location|truncatechars:28 }}</td>
                             <td>{{ property.units_count|default:"0" }}</td>
                             <td>
                                 {% if property.units_count %}
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <div class="progress" style="width:70px; flex-shrink:0;">
-                                        <div class="progress-bar" style="width:{{ property.occupancy_pct|default:'0' }}%;"></div>
-                                    </div>
-                                    <span style="font-size:12px; color:var(--txt-muted);">{{ property.occupancy_pct|default:"0" }}%</span>
+                                <div class="db-dashboard__progress-inline">
+                                    <div class="progress"><div class="progress-bar" style="width:{{ property.occupancy_pct|default:'0' }}%;"></div></div>
+                                    <span class="db-dashboard__progress-label">{{ property.occupancy_pct|default:"0" }}%</span>
                                 </div>
                                 {% else %}
-                                <span style="font-size:12px; color:var(--txt-muted);">—</span>
+                                <span class="db-dashboard__progress-label">—</span>
                                 {% endif %}
                             </td>
-                            <td style="text-align:right; white-space:nowrap;">
-                                <a href="{% url 'property_detail' property.slug %}" class="btn btn-secondary btn-sm">View</a>
-                                <a href="{% url 'property_update' property.slug %}" class="btn btn-secondary btn-sm" style="margin-left:4px;">Edit</a>
+                            <td class="db-dashboard__cell-actions">
+                                <a href="{% url 'property_detail' property.slug %}" class="btn btn-secondary btn-sm db-dashboard__action-btn">View</a>
+                                <a href="{% url 'property_update' property.slug %}" class="btn btn-secondary btn-sm">Edit</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -211,9 +214,67 @@
                 <i class="fas fa-building"></i>
                 <h3>No properties yet</h3>
                 <p>Get started by adding your first property.</p>
-                <a href="{% url 'property_create' %}" class="btn btn-primary" style="margin-top:14px;">
+                <a href="{% url 'property_create' %}" class="btn btn-primary db-dashboard__action-btn">
                     <i class="fas fa-plus"></i> Add Property
                 </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Tenants -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><i class="fas fa-users db-dashboard__card-title-icon db-dashboard__card-title-icon--brand"></i>Tenants</span>
+            <div class="db-dashboard__card-actions">
+                <a href="{% url 'tenant_create' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Add
+                </a>
+                <a href="{% url 'tenant_list' %}" class="btn btn-secondary btn-sm">Manage</a>
+            </div>
+        </div>
+        <div class="card-body db-dashboard__card-body--flush">
+            {% if recent_tenants %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tenant</th>
+                            <th>Phone</th>
+                            <th>Unit</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in recent_tenants %}
+                        <tr>
+                            <td>
+                                <div class="db-dashboard__avatar-row">
+                                    <div class="avatar db-dashboard__avatar--sm">{{ t.full_name|first|upper }}</div>
+                                    {{ t.full_name }}
+                                </div>
+                            </td>
+                            <td class="db-dashboard__meta-text">{{ t.phone_number }}</td>
+                            <td>
+                                {% if t.current_unit %}
+                                <span class="badge badge-blue">{{ t.current_unit.unit_number }}</span>
+                                {% else %}
+                                <span class="badge badge-gray">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="db-dashboard__cell-actions">
+                                <a href="{% url 'tenant_detail' t.id %}" class="btn btn-secondary btn-sm db-dashboard__action-btn">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No tenants yet</h3>
+                <p>Add tenants to get started.</p>
             </div>
             {% endif %}
         </div>
@@ -222,10 +283,10 @@
     <!-- Maintenance Summary -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title"><i class="fas fa-tools" style="margin-right:7px; color:var(--amber);"></i>Maintenance</span>
+            <span class="card-title"><i class="fas fa-tools db-dashboard__card-title-icon db-dashboard__card-title-icon--amber"></i>Maintenance</span>
             <a href="#" class="btn btn-secondary btn-sm">View All</a>
         </div>
-        <div class="card-body" style="padding:0;">
+        <div class="card-body db-dashboard__card-body--flush">
             {% if pending_maintenance %}
                 <table>
                     <thead>
@@ -235,8 +296,8 @@
                         {% for m in pending_maintenance|slice:":5" %}
                         <tr>
                             <td>
-                                <div style="font-size:13px; font-weight:500;">{{ m.title|truncatechars:30 }}</div>
-                                <div style="font-size:11.5px; color:var(--txt-muted);">{{ m.unit }}</div>
+                                <div class="db-dashboard__issue-title">{{ m.title|truncatechars:30 }}</div>
+                                <div class="db-dashboard__issue-subtitle">{{ m.unit }}</div>
                             </td>
                             <td>
                                 {% if m.priority == 'HIGH' %}
@@ -252,8 +313,8 @@
                     </tbody>
                 </table>
             {% else %}
-                <div class="empty-state" style="padding:32px 20px;">
-                    <i class="fas fa-tools" style="opacity:0.3;"></i>
+                <div class="empty-state db-dashboard__empty-state--compact">
+                    <i class="fas fa-tools db-dashboard__empty-state-icon db-dashboard__empty-state-icon--muted"></i>
                     <h3>No pending issues</h3>
                     <p>All maintenance is clear.</p>
                 </div>
@@ -264,27 +325,62 @@
 
 <!-- ── ROLE-SPECIFIC: Manager/Caretaker quick info ── -->
 {% if user.role == 'MANAGER' %}
-<div class="card" style="border-left: 3px solid var(--brand);">
-    <div class="card-body" style="display:flex; align-items:center; gap:14px;">
-        <div class="stat-icon green" style="flex-shrink:0;"><i class="fas fa-user-tie"></i></div>
+<div class="card db-dashboard__banner db-dashboard__banner--manager">
+    <div class="card-body db-dashboard__banner-body">
+        <div class="stat-icon green db-dashboard__banner-icon"><i class="fas fa-user-tie"></i></div>
         <div>
-            <div style="font-weight:600; margin-bottom:2px;">Manager Access</div>
-            <div style="font-size:13px; color:var(--txt-secondary);">You have access to rent records, tenant accounts, and expense management.</div>
+            <div class="db-dashboard__banner-title">Manager Access</div>
+            <div class="db-dashboard__banner-copy">You have access to rent records, tenant accounts, and expense management.</div>
         </div>
     </div>
 </div>
 {% endif %}
 
 {% if user.role == 'CARETAKER' %}
-<div class="card" style="border-left: 3px solid var(--amber);">
-    <div class="card-body" style="display:flex; align-items:center; gap:14px;">
-        <div class="stat-icon amber" style="flex-shrink:0;"><i class="fas fa-hard-hat"></i></div>
+<div class="card db-dashboard__banner db-dashboard__banner--caretaker">
+    <div class="card-body db-dashboard__banner-body">
+        <div class="stat-icon amber db-dashboard__banner-icon"><i class="fas fa-hard-hat"></i></div>
         <div>
-            <div style="font-weight:600; margin-bottom:2px;">Caretaker Access</div>
-            <div style="font-size:13px; color:var(--txt-secondary);">You can manage tenant occupancy, record maintenance requests, and update unit statuses.</div>
+            <div class="db-dashboard__banner-title">Caretaker Access</div>
+            <div class="db-dashboard__banner-copy">You can manage tenant occupancy, record maintenance requests, and update unit statuses.</div>
         </div>
     </div>
 </div>
 {% endif %}
+
+<!-- ── ADDITIONAL TENANT APP NAVIGATION LINKS ── -->
+<div class="db-dashboard__quick-links">
+    <a href="{% url 'reservation_list' %}" class="card db-dashboard__quick-link">
+        <div class="stat-icon amber db-dashboard__quick-link-icon"><i class="fas fa-calendar-check"></i></div>
+        <div>
+            <div class="db-dashboard__quick-link-title">Reservations</div>
+            <div class="db-dashboard__quick-link-copy">View and manage unit reservations</div>
+        </div>
+    </a>
+    
+    <a href="{% url 'tenancy_list' %}" class="card db-dashboard__quick-link">
+        <div class="stat-icon green db-dashboard__quick-link-icon"><i class="fas fa-handshake"></i></div>
+        <div>
+            <div class="db-dashboard__quick-link-title">Tenancies</div>
+            <div class="db-dashboard__quick-link-copy">Active tenant assignments</div>
+        </div>
+    </a>
+    
+    <a href="{% url 'tenancy_list' %}" class="card db-dashboard__quick-link">
+        <div class="stat-icon blue db-dashboard__quick-link-icon"><i class="fas fa-history"></i></div>
+        <div>
+            <div class="db-dashboard__quick-link-title">Tenant History</div>
+            <div class="db-dashboard__quick-link-copy">View past occupants</div>
+        </div>
+    </a>
+    
+    <a href="{% url 'tenant_create' %}" class="card db-dashboard__quick-link db-dashboard__quick-link--primary">
+        <div class="stat-icon db-dashboard__quick-link-icon db-dashboard__quick-link-icon--brand"><i class="fas fa-user-plus"></i></div>
+        <div>
+            <div class="db-dashboard__quick-link-title">Quick Add</div>
+            <div class="db-dashboard__quick-link-copy">Register new tenant</div>
+        </div>
+    </a>
+</div>
 
 {% endblock %}

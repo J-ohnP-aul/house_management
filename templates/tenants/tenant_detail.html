@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>{{ tenant.full_name }}</h2>
+
+<div>
+
+    <p>
+        <strong>Phone:</strong>
+        {{ tenant.phone_no }}
+    </p>
+
+    <p>
+        <strong>ID No:</strong>
+        {{ tenant.id_no }}
+    </p>
+
+    <p>
+        <strong>Emergency:</strong>
+        {{ tenant.emergency_no }}
+    </p>
+
+</div>
+
+<hr>
+
+<h3>Occupancy History</h3>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Unit</th>
+            <th>Move In</th>
+            <th>Move Out</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for tenancy in tenancies %}
+
+        <tr>
+
+            <td>{{ tenancy.unit }}</td>
+
+            <td>
+                {{ tenancy.move_in_date }}
+            </td>
+
+            <td>
+                {{ tenancy.move_out_date|default:"-" }}
+            </td>
+
+            <td>
+                {{ tenancy.get_status_display }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+{% for tenant in tenants %}
+<a href="{% url 'tenant_history' tenant.id %}">
+    History
+</a>
+{% endfor %}
+
+{% endblock %}

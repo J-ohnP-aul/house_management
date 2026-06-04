@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2>Tenants</h2>
+
+    <a href="{% url 'tenant_create' %}"
+       class="btn btn-primary">
+        Add Tenant
+    </a>
+</div>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>ID No</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for tenant in tenants %}
+
+        <tr>
+
+            <td>{{ tenant.full_name }}</td>
+            <td>{{ tenant.phone_no }}</td>
+            <td>{{ tenant.id_no }}</td>
+
+            <td>
+
+                {% if tenant.is_active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                <a href="{% url 'tenant_detail' tenant.id %}">
+                    View
+                </a>
+
+                |
+
+                <a href="{% url 'tenant_update' tenant.id %}">
+                    Edit
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+            <td colspan="5">
+                No tenants found.
+            </td>
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}
