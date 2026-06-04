@@ -2,7 +2,12 @@
 
 {% block content %}
 
-<h2>Tenant Form</h2>
+<div class="page-header" style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    <a href="{% url 'tenant_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Tenants
+    </a>
+    <h2 style="margin:0;">Tenant Form</h2>
+</div>
 
 <form method="post">
 

@@ -1,74 +1,280 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tenant.full_name }} | Tenant Details{% endblock %}
+{% block topbar_title %}Tenant Details{% endblock %}
 
 {% block content %}
+<div class="td-container">
 
-<h2>{{ tenant.full_name }}</h2>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="breadcrumb">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <span class="breadcrumb-sep">/</span>
+                <a href="{% url 'tenant_list' %}">Tenants</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">{{ tenant.full_name }}</span>
+            </div>
+            <h1>
+                <i class="fas fa-user-circle"></i>
+                {{ tenant.full_name }}
+            </h1>
+            {% if current_tenancy %}
+            <p class="td-status-badge td-status-active">
+                <i class="fas fa-home"></i> Currently in Unit {{ current_tenancy.unit.unit_number }}
+            </p>
+            {% else %}
+            <p class="td-status-badge td-status-inactive">
+                <i class="fas fa-clock"></i> No Active Tenancy
+            </p>
+            {% endif %}
+        </div>
+        <div class="td-header-actions">
+            <a href="{% url 'tenant_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Tenants
+            </a>
+            <a href="{% url 'tenant_update' tenant.id %}" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            {% if not current_tenancy %}
+            <a href="{% url 'tenancy_create' %}?tenant={{ tenant.id }}" class="btn btn-primary">
+                <i class="fas fa-handshake"></i> Assign Unit
+            </a>
+            {% endif %}
+        </div>
+    </div>
 
-<div>
+    <!-- Balance Card -->
+    <div class="td-balance-card">
+        <div class="td-balance-left">
+            <div class="td-label">Current Balance</div>
+            <div class="td-balance-amount {% if current_balance > 0 %}td-overdue{% else %}td-paid{% endif %}">
+                KES {{ current_balance|floatformat:2|default:"0.00" }}
+            </div>
+            {% if current_balance > 0 %}
+            <div class="td-overdue-note">
+                <i class="fas fa-exclamation-circle"></i> Overdue by {{ days_overdue|default:"0" }} days
+            </div>
+            {% else %}
+            <div class="td-paid-note">
+                <i class="fas fa-check-circle"></i> Account in good standing
+            </div>
+            {% endif %}
+        </div>
+        <div class="td-balance-right">
+            <div class="td-label">Monthly Rent</div>
+            <div class="td-rent-amount">KES {{ monthly_rent|floatformat:2|default:"0.00" }}</div>
+            <div class="td-label td-due-label">Next Due Date</div>
+            <div class="td-due-date">
+                <i class="fas fa-calendar-alt"></i> {{ next_due_date|date:"d F Y"|default:"Not set" }}
+            </div>
+        </div>
+    </div>
 
-    <p>
-        <strong>Phone:</strong>
-        {{ tenant.phone_no }}
-    </p>
+    <!-- Action Buttons -->
+    <div class="td-action-buttons">
+        <button class="btn btn-primary" onclick="document.getElementById('paymentModal').style.display='flex'">
+            <i class="fas fa-money-bill-wave"></i> Record Payment
+        </button>
+        <button class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-download"></i> Download Statement
+        </button>
+        <button class="btn btn-secondary">
+            <i class="fas fa-bell"></i> Send Reminder
+        </button>
+    </div>
 
-    <p>
-        <strong>ID No:</strong>
-        {{ tenant.id_no }}
-    </p>
+    <!-- Contact Information Cards -->
+    <div class="td-info-grid">
+        <div class="td-info-card">
+            <div class="td-info-label">
+                <i class="fas fa-phone"></i> Contact Information
+            </div>
+            <div class="td-info-value">
+                <div><i class="fas fa-phone-alt"></i> {{ tenant.phone_no|default:"Not provided" }}</div>
+                <div><i class="fas fa-envelope"></i> {{ tenant.email|default:"Not provided" }}</div>
+                <div><i class="fas fa-id-card"></i> ID: {{ tenant.id_no|default:"Not provided" }}</div>
+            </div>
+        </div>
 
-    <p>
-        <strong>Emergency:</strong>
-        {{ tenant.emergency_no }}
-    </p>
+        <div class="td-info-card">
+            <div class="td-info-label">
+                <i class="fas fa-ambulance"></i> Emergency Contact
+            </div>
+            <div class="td-info-value">
+                <div><i class="fas fa-user"></i> {{ tenant.emergency_name|default:"Not provided" }}</div>
+                <div><i class="fas fa-phone"></i> {{ tenant.emergency_no|default:"Not provided" }}</div>
+                <div><i class="fas fa-heart"></i> {{ tenant.emergency_relation|default:"Not specified" }}</div>
+            </div>
+        </div>
 
+        <div class="td-info-card">
+            <div class="td-info-label">
+                <i class="fas fa-chart-line"></i> Account Summary
+            </div>
+            <div class="td-info-value">
+                <div><i class="fas fa-calendar-plus"></i> Registered: {{ tenant.created_at|date:"d M Y"|default:"N/A" }}</div>
+                <div><i class="fas fa-clock"></i> Last Payment: {{ last_payment_date|date:"d M Y"|default:"No payments" }}</div>
+                <div><i class="fas fa-percent"></i> Status: {{ payment_status|default:"Active" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Occupancy History -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-history"></i> Occupancy History
+            </span>
+        </div>
+        <div class="card-body">
+            {% if tenancies %}
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Unit</th>
+                            <th>Property</th>
+                            <th>Move In</th>
+                            <th>Move Out</th>
+                            <th>Status</th>
+                            <th>Rent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tenancy in tenancies %}
+                        <tr>
+                            <td><strong>{{ tenancy.unit.unit_number }}</strong></td>
+                            <td>{{ tenancy.unit.property.name }}</td>
+                            <td>{{ tenancy.move_in_date|date:"d M Y" }}</td>
+                            <td>{{ tenancy.move_out_date|date:"d M Y"|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if tenancy.status == 'ACTIVE' %}badge-green{% else %}badge-gray{% endif %}">
+                                    {{ tenancy.get_status_display }}
+                                </span>
+                            </td>
+                            <td>KES {{ tenancy.monthly_rent|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-home"></i>
+                <h3>No occupancy history</h3>
+                <p>This tenant has not been assigned to any unit yet.</p>
+                <a href="{% url 'tenancy_create' %}?tenant={{ tenant.id }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Assign Unit
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Payment Statement -->
+    <div class="td-statement-header">
+        <h3><i class="fas fa-receipt"></i> Payment Statement</h3>
+        <span class="badge badge-blue">Last 6 months</span>
+    </div>
+
+    <div class="td-transaction-table">
+        {% if transactions %}
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date|date:"d M Y" }}</td>
+                        <td>
+                            <i class="fas {% if transaction.type == 'rent' %}fa-home{% else %}fa-money-bill-wave{% endif %}"></i>
+                            {{ transaction.description }}
+                        </td>
+                        <td class="td-debit">{% if transaction.debit > 0 %}KES {{ transaction.debit|floatformat:2 }}{% else %}—{% endif %}</td>
+                        <td class="td-credit">{% if transaction.credit > 0 %}KES {{ transaction.credit|floatformat:2 }}{% else %}—{% endif %}</td>
+                        <td class="{% if transaction.balance > 0 %}td-balance-neg{% else %}td-balance-pos{% endif %}">
+                            KES {{ transaction.balance|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2"><strong>Totals</strong></td>
+                        <td class="td-debit"><strong>KES {{ total_debits|floatformat:2 }}</strong></td>
+                        <td class="td-credit"><strong>KES {{ total_credits|floatformat:2 }}</strong></td>
+                        <td class="{% if current_balance > 0 %}td-balance-neg{% else %}td-balance-pos{% endif %}">
+                            <strong>KES {{ current_balance|floatformat:2 }}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="td-empty-transactions">
+            <i class="fas fa-receipt"></i>
+            <h3>No transactions yet</h3>
+            <p>Record the first payment to start the statement.</p>
+            <button class="btn btn-primary" onclick="document.getElementById('paymentModal').style.display='flex'">
+                <i class="fas fa-plus"></i> Record First Payment
+            </button>
+        </div>
+        {% endif %}
+    </div>
 </div>
 
-<hr>
+<!-- Payment Modal -->
+<div id="paymentModal" class="td-modal">
+    <div class="td-modal-content">
+        <div class="td-modal-header">
+            <h3>Record Payment for {{ tenant.full_name }}</h3>
+            <button class="td-modal-close" onclick="document.getElementById('paymentModal').style.display='none'">&times;</button>
+        </div>
+        <form method="post" action="">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Amount (KES)</label>
+                <input type="number" name="amount" class="form-control" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Date</label>
+                <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <select name="payment_method" class="form-control" required>
+                    <option value="">Select method</option>
+                    <option value="MPESA">M-Pesa</option>
+                    <option value="CASH">Cash</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Receipt Number</label>
+                <input type="text" name="receipt_no" class="form-control" placeholder="Optional">
+            </div>
+            <div class="td-modal-buttons">
+                <button type="submit" class="btn btn-primary">Record Payment</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('paymentModal').style.display='none'">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-<h3>Occupancy History</h3>
-
-<table class="table">
-
-    <thead>
-        <tr>
-            <th>Unit</th>
-            <th>Move In</th>
-            <th>Move Out</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-        {% for tenancy in tenancies %}
-
-        <tr>
-
-            <td>{{ tenancy.unit }}</td>
-
-            <td>
-                {{ tenancy.move_in_date }}
-            </td>
-
-            <td>
-                {{ tenancy.move_out_date|default:"-" }}
-            </td>
-
-            <td>
-                {{ tenancy.get_status_display }}
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
-{% for tenant in tenants %}
-<a href="{% url 'tenant_history' tenant.id %}">
-    History
-</a>
-{% endfor %}
-
+<script>
+    document.getElementById('paymentModal').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+</script>
 {% endblock %}

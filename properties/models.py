@@ -4,7 +4,12 @@ from django.db import models
 class Property(models.Model):
     name = models.CharField(max_length=200)
     location = models.CharField(max_length=255)
-
+    image = models.ImageField(
+        upload_to='properties/',
+        blank=True,
+        null=True
+    )
+    
     description = models.TextField(
         blank=True,
         null=True

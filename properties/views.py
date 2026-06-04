@@ -4,7 +4,7 @@ from django.db.models import Count, Sum, Case, When, Value, IntegerField, FloatF
 
 from .models import Property, Unit
 from .forms import PropertyForm, UnitForm
-from tenants.models import Tenant
+from tenants.models import Tenant, Tenancy
 
 # Create your views here.
 @login_required
@@ -51,7 +51,36 @@ def property_list(request):
 @login_required
 def property_detail(request, id):
     property = get_object_or_404(Property, id=id)
-    return render(request, 'property/p_detail.html', {'property':property})
+    units = property.units.all()
+    total_units = units.count()
+    occupied_units = units.filter(status=Unit.OCCUPIED).count()
+    reserved_units = units.filter(status=Unit.RESERVED).count()
+    vacant_units = units.filter(status=Unit.VACANT).count()
+    occupancy_pct = int((occupied_units / total_units) * 100) if total_units else 0
+    active_tenants = Tenant.objects.filter(
+        tenancies__unit__parent_property=property,
+        tenancies__status=Tenancy.ACTIVE
+    ).distinct().count()
+    moved_out_tenants = Tenant.objects.filter(
+        tenancies__unit__parent_property=property,
+        tenancies__status=Tenancy.MOVED_OUT
+    ).distinct().count()
+    recent_activity = Tenancy.objects.filter(
+        unit__parent_property=property
+    ).select_related('tenant', 'unit').order_by('-updated_at')[:5]
+
+    return render(request, 'property/p_detail.html', {
+        'property': property,
+        'units': units,
+        'total_units': total_units,
+        'occupied_units': occupied_units,
+        'reserved_units': reserved_units,
+        'vacant_units': vacant_units,
+        'occupancy_pct': occupancy_pct,
+        'active_tenants': active_tenants,
+        'moved_out_tenants': moved_out_tenants,
+        'recent_activity': recent_activity,
+    })
 
 @login_required
 def property_update(request, id):
@@ -63,7 +92,8 @@ def property_update(request, id):
             return redirect('property_detail', slug=property.slug)
     else:
         form = PropertyForm(instance=property)
-    return render(request, 'property/p_update.html', {'form':form})
+    return render(request, 'property/p_create.html', {'form':form})
+
 @login_required
 def unit_list(request):
     units = Unit.objects.order_by('-unit_number')

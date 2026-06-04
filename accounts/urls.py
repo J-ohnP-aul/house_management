@@ -15,6 +15,7 @@ urlpatterns = [
         authentication_form=CustomAuthenticationForm
     ), name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/stats/', views.dashboard_stats, name='dashboard_stats'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     
     # Registration (only accessible by Owner)

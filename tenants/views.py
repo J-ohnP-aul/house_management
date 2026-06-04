@@ -1,14 +1,50 @@
+from django.db.models import Q
 from django.utils import timezone
 
 from django.shortcuts import get_object_or_404, render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Tenancy, Tenant, Reservation
 from .forms import TenantForm, ReservationForm, TenancyForm
+from properties.models import Property
 
 # Create your views here.
 def tenant_list(request):
-    tenants = Tenant.objects.all()
-    return render(request, 'tenants/tenant_list.html', {'tenants': tenants})
+    tenants = Tenant.objects.all().prefetch_related('tenancies__unit__parent_property')
+    search_query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status')
+    property_filter = request.GET.get('property')
+
+    if search_query:
+        tenants = tenants.filter(
+            Q(full_name__icontains=search_query)
+            | Q(phone_no__icontains=search_query)
+            | Q(id_no__icontains=search_query)
+        )
+
+    if property_filter:
+        tenants = tenants.filter(tenancies__unit__parent_property_id=property_filter)
+
+    if status_filter == 'active':
+        tenants = tenants.filter(tenancies__status=Tenancy.ACTIVE)
+    elif status_filter == 'moved_out':
+        tenants = tenants.filter(tenancies__status=Tenancy.MOVED_OUT)
+
+    tenants = tenants.distinct()
+
+    total_tenants = Tenant.objects.count()
+    active_tenants = Tenant.objects.filter(tenancies__status=Tenancy.ACTIVE).distinct().count()
+    moved_out_tenants = Tenant.objects.filter(tenancies__status=Tenancy.MOVED_OUT).distinct().count()
+
+    context = {
+        'tenants': tenants,
+        'properties': Property.objects.all(),
+        'total_tenants': total_tenants,
+        'active_tenants': active_tenants,
+        'moved_out_tenants': moved_out_tenants,
+        'overdue_count': 0,
+        'total_arrears': 0,
+    }
+    return render(request, 'tenants/tenant_list.html', context)
 
 def tenant_create(request):
     if request.method == 'POST':

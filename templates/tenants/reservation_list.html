@@ -4,14 +4,20 @@
 
 <div class="page-header">
 
-    <h2>Reservations</h2>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; width:100%;">
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h2 style="margin:0;">Reservations</h2>
+        </div>
+        <a href="{% url 'reservation_create' %}"
+           class="btn btn-primary">
 
-    <a href="{% url 'reservation_create' %}"
-       class="btn btn-primary">
+            New Reservation
 
-        New Reservation
-
-    </a>
+        </a>
+    </div>
 
 </div>
 

@@ -15,6 +15,15 @@ class Tenant(models.Model):
     def is_active(self):
         return self.tenancies.filter(status=Tenancy.ACTIVE).exists()
 
+    @property
+    def current_tenancy(self):
+        return self.tenancies.filter(status=Tenancy.ACTIVE).select_related('unit').first()
+
+    @property
+    def current_unit(self):
+        tenancy = self.current_tenancy
+        return tenancy.unit if tenancy else None
+
     class Meta:
         ordering = ['full_name']
 

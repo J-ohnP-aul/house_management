@@ -1,287 +1,251 @@
-/* dashboard.css - Fixed with all missing BEM classes */
-:root {
-    /* Ensure CSS variables cascade properly */
-    --brand: #1A6B4A;
-    --brand-light: #E8F5EF;
-    --green: #1A6B4A;
-    --amber: #C07A10;
-    --red: #B93B3B;
-    --txt-secondary: #5A6A5F;
-    --txt-muted: #8FA396;
-    --border: #E3E8E3;
+/* ─────────────────────────────────────────────
+   dashboard.css  —  BEM prefix: db-
+   Mobile-first: base = mobile, scale up
+───────────────────────────────────────────── */
+
+/* ── Page layout wrapper ── */
+.db { /* no extra styles needed; inherits .page padding */ }
+
+/* ── Page header ── */
+.page-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-/* Dashboard header */
-.db-dashboard__header-actions {
-    display: flex;
-    gap: 10px;
+/* On mobile, hide button text labels — show icon only */
+@media (max-width: 479px) {
+  .btn-icon-mobile .btn-text { display: none; }
 }
 
-/* Stat cards (KPI grid) */
-.db-dashboard__stat-grid {
-    margin-bottom: 24px;
+/* ── Stat cards ── */
+/* Mobile: 2 columns */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-/* Grid layout system - FIXED: Added default grid templates */
-.db-dashboard__row {
-    display: grid;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.db-dashboard__row--two {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.db-dashboard__row--three {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.db-dashboard__card-body--flush {
-    padding: 0;
-}
-
-/* Tables */
-.db-dashboard__status-cell {
-    width: 120px;
-}
-
-.db-dashboard__muted-text {
-    color: var(--txt-secondary);
-}
-
-.db-dashboard__text-muted {
-    color: var(--txt-muted);
-}
-
-.db-dashboard__small-text {
-    font-size: 12px;
-    color: var(--txt-muted);
-}
-
-.db-dashboard__cell-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 4px;
-    text-align: right;
-    white-space: nowrap;
-}
-
-.db-dashboard__button-group .btn + .btn,
-.db-dashboard__action-btn + .btn {
-    margin-left: 4px;
-}
-
-/* Progress bars */
-.db-dashboard__progress {
-    min-width: 100%;
-}
-
-.db-dashboard__progress-inline {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.db-dashboard__progress-inline .progress {
-    width: 70px;
-    flex-shrink: 0;
-}
-
-.db-dashboard__progress-label {
-    font-size: 12px;
-    color: var(--txt-muted);
-}
-
-.db-dashboard__progress-bar--green {
-    background: var(--green);
-}
-
-.db-dashboard__progress-bar--amber {
-    background: var(--amber);
-}
-
-.db-dashboard__progress-bar--gray {
-    background: var(--txt-muted);
-}
-
-/* Avatar circles */
-.db-dashboard__avatar-row {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-}
-
-.db-dashboard__avatar--sm {
-    width: 28px;
-    height: 28px;
-    font-size: 10px;
-}
-
-.db-dashboard__amount-owed {
-    color: var(--red);
-}
-
-.db-dashboard__strong-text {
-    font-weight: 500;
-}
-
-.db-dashboard__meta-text {
-    font-size: 12px;
-}
-
-/* Empty states */
-.db-dashboard__empty-state--compact {
-    padding: 32px 20px;
-}
-
-.db-dashboard__empty-state-icon--success {
-    color: var(--green);
-    opacity: 1;
-}
-
-.db-dashboard__empty-state-icon--muted {
-    opacity: 0.3;
-}
-
-/* Role-specific banners */
-.db-dashboard__banner {
-    border-left: 3px solid var(--border);
-    margin-top: 20px;
-}
-
-.db-dashboard__banner--manager {
-    border-color: var(--brand);
-}
-
-.db-dashboard__banner--caretaker {
-    border-color: var(--amber);
-}
-
-.db-dashboard__banner-body {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.db-dashboard__banner-icon {
-    flex-shrink: 0;
-}
-
-.db-dashboard__banner-title {
-    font-weight: 600;
-    margin-bottom: 2px;
-}
-
-.db-dashboard__banner-copy {
-    font-size: 13px;
-    color: var(--txt-secondary);
-}
-
-/* Quick navigation links */
-.db-dashboard__quick-links {
-    display: grid;
+/* Tablet+: 4 columns */
+@media (min-width: 640px) {
+  .stat-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    margin-top: 20px;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
 }
 
-.db-dashboard__quick-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.2s, box-shadow 0.2s;
+/* Smaller font for large KES numbers on small screens */
+.db-stat-value--sm {
+  font-size: 17px !important;
+}
+@media (min-width: 640px) {
+  .db-stat-value--sm { font-size: 22px !important; }
 }
 
-.db-dashboard__quick-link:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+.stat-card .stat-sub {
+  font-size: 11px;
+  color: var(--txt-secondary);
+  margin-top: -4px;
 }
 
-.db-dashboard__quick-link--primary {
-    background: var(--brand-light);
+/* ── Two-col row (Financials + Occupancy) ── */
+.db-row { margin-bottom: 14px; }
+
+/* Mobile: stacked */
+.db-row--two,
+.db-row--three {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.db-dashboard__quick-link-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Tablet: 2-col for --two */
+@media (min-width: 800px) {
+  .db-row--two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
 }
 
-.db-dashboard__quick-link-icon--brand {
-    background: var(--brand);
-    color: white;
+/* Desktop: 3-col for --three */
+@media (min-width: 1024px) {
+  .db-row--three {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
 }
 
-.db-dashboard__quick-link-title {
-    font-weight: 600;
+/* ── Financial mini-metric tiles ── */
+.db-fin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
-.db-dashboard__quick-link-copy {
-    font-size: 12px;
-    color: var(--txt-muted);
+/* Profit tile spans full width on very small screens */
+.db-fin-tile:last-child { grid-column: span 2; }
+
+@media (min-width: 480px) {
+  .db-fin-grid { grid-template-columns: repeat(3, 1fr); }
+  .db-fin-tile:last-child { grid-column: span 1; }
 }
 
-/* General utility */
-.db-dashboard__card-actions {
-    display: flex;
-    gap: 8px;
+.db-fin-tile {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.db-fin-tile--profit {
+  background: var(--green-bg);
+  border: 1px solid #c3e0d0;
+}
+.db-fin-label {
+  font-size: 10px;
+  color: var(--txt-muted);
+  margin-bottom: 4px;
+}
+.db-fin-label--profit { color: var(--green-txt); }
+.db-fin-value {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.db-fin-value--green { color: var(--green); }
+.db-fin-value--red   { color: var(--red); }
+.db-fin-currency {
+  font-size: 10px;
+  color: var(--txt-muted);
+}
+.db-fin-currency--profit { color: var(--green-txt); }
+
+/* ── Chart helpers ── */
+.db-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--txt-secondary);
+  margin-bottom: 8px;
+}
+.db-chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.db-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.db-legend-dot--round  { border-radius: 50%; }
+.db-legend-dot--green  { background: var(--green); }
+.db-legend-dot--red    { background: var(--red); }
+.db-legend-dot--amber  { background: var(--amber); }
+.db-legend-dot--gray   { background: var(--txt-muted); }
+
+.db-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 160px;
+}
+.db-chart-wrap--sm { height: 130px; }
+
+/* ── Occupancy rows ── */
+.db-occ-rows {}
+.db-occ-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.db-occ-row:last-child { border-bottom: none; }
+.db-occ-label { width: 78px; font-size: 12px; }
+.db-occ-count { font-size: 15px; font-weight: 600; width: 28px; }
+.db-occ-pct   { font-size: 11px; color: var(--txt-muted); width: 34px; }
+.db-occ-bar   { flex: 1; }
+.db-pb--amber { background: var(--amber) !important; }
+.db-pb--gray  { background: var(--txt-muted) !important; }
+
+.db-donut-section {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
 }
 
-.db-dashboard__card-title-icon {
-    margin-right: 7px;
+/* ── Card helpers ── */
+.card-body--flush { padding: 0; }
+.db-empty--compact { padding: 32px 20px; }
+
+/* ── Icon colours ── */
+.db-icon         { margin-right: 7px; }
+.db-icon--brand  { color: var(--brand); }
+.db-icon--red    { color: var(--red); }
+.db-icon--amber  { color: var(--amber); }
+
+/* ── Text utilities ── */
+.text-muted { color: var(--txt-secondary); }
+.text-red   { color: var(--red); }
+
+/* ── Property table helpers ── */
+.db-prop-name     { font-weight: 500; font-size: 12px; }
+.db-prop-location { font-size: 11px; color: var(--txt-muted); }
+.db-progress-inline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.db-pct-label { font-size: 11px; color: var(--txt-muted); }
+
+/* ── Role banners ── */
+.db-banner { border-left: 3px solid var(--border); margin-bottom: 14px; }
+.db-banner--manager  { border-color: var(--brand); }
+.db-banner--caretaker { border-color: var(--amber); }
+.db-banner-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.db-banner-title { font-weight: 600; margin-bottom: 2px; }
+.db-banner-copy  { font-size: 13px; color: var(--txt-secondary); }
+
+/* ── Section label ── */
+.db-section-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--txt-muted);
+  margin: 16px 0 8px;
 }
 
-.db-dashboard__card-title-icon--brand {
-    color: var(--brand);
+/* ── Quick links: 2-col mobile, 4-col desktop ── */
+.db-quick-links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (min-width: 640px) {
+  .db-quick-links { grid-template-columns: repeat(4, 1fr); gap: 14px; }
 }
 
-.db-dashboard__card-title-icon--red {
-    color: var(--red);
+.db-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s;
 }
+.db-quick-link:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.db-quick-link--primary { background: var(--brand-light); border-color: #c3e0d0; }
 
-.db-dashboard__card-title-icon--amber {
-    color: var(--amber);
-}
-
-/* FIXED: Added missing maintenance issue styles */
-.db-dashboard__issue-title {
-    font-weight: 500;
-    margin-bottom: 4px;
-    font-size: 13px;
-}
-
-.db-dashboard__issue-subtitle {
-    font-size: 11px;
-    color: var(--txt-muted);
-}
-
-/* Responsive behavior */
-@media (max-width: 920px) {
-    .db-dashboard__row--two,
-    .db-dashboard__row--three {
-        grid-template-columns: 1fr;
-    }
-    
-    .db-dashboard__quick-links {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 650px) {
-    .db-dashboard__quick-links {
-        grid-template-columns: 1fr;
-    }
-    
-    .db-dashboard__cell-actions {
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 8px;
-    }
-}
+.db-ql-title { font-size: 12.5px; font-weight: 600; }
+.db-ql-copy  { font-size: 11px; color: var(--txt-muted); }

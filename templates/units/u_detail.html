@@ -6,6 +6,9 @@
 {% block content %}
 <div class="card">
     <div class="card-body">
+        <a href="{% url 'unit_list' %}" class="btn btn-secondary" style="margin-bottom:18px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Units
+        </a>
         <h2 style="margin-top:0;">Unit {{ unit.unit_number }}</h2>
         <p style="color:var(--txt-muted); margin-bottom:1.5rem;">{{ unit.description|default:"No description provided." }}</p>
 

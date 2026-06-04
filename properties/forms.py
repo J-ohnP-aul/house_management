@@ -6,7 +6,8 @@ class PropertyForm(forms.ModelForm):
         model = Property
         fields = [
             'name', 
-            'location', 
+            'location',
+            'image',
             'description', 
             'water_included', 
             'electricity_included',
@@ -16,6 +17,7 @@ class PropertyForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Property Name'}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 123 Main St'}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Property details...'}),
             'water_included': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'electricity_included': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

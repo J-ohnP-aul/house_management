@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
 from .models import User
 from .forms import CustomUserCreationForm
 from properties.models import Property, Unit
@@ -21,20 +22,51 @@ def dashboard(request):
     units = Unit.objects.all()
     properties = Property.objects.all()
     tenants = Tenant.objects.all()
+
+    occupied_units = units.filter(status=Unit.OCCUPIED).count()
+    vacant_units = units.filter(status=Unit.VACANT).count()
+    reserved_units = units.filter(status=Unit.RESERVED).count()
+    total_units_count = units.count()
+    occupancy_rate = int((occupied_units / total_units_count) * 100) if total_units_count else 0
+    reserved_rate = int((reserved_units / total_units_count) * 100) if total_units_count else 0
+    vacant_rate = int((vacant_units / total_units_count) * 100) if total_units_count else 0
     
     context = {
         'user': request.user,
         'total_properties': properties.count(),
-        'total_units': units.count(),
-        'occupied_units': units.filter(status='Occupied').count(),
-        'vacant_units': units.filter(status='Vacant').count(),
-        'reserved_units': units.filter(status='Reserved').count(),
+        'total_units_count': total_units_count,
+        'occupied_units': occupied_units,
+        'vacant_units': vacant_units,
+        'reserved_units': reserved_units,
+        'occupancy_rate': occupancy_rate,
+        'reserved_rate': reserved_rate,
+        'vacant_rate': vacant_rate,
         'monthly_income': 0,
         'monthly_expenses': 0,
         'outstanding_arrears': 0,
-        
     }
     return render(request, 'accounts/dashboard.html', context)
+
+@login_required
+def dashboard_stats(request):
+    units = Unit.objects.all()
+    total_units_count = units.count()
+    occupied_units = units.filter(status=Unit.OCCUPIED).count()
+    vacant_units = units.filter(status=Unit.VACANT).count()
+    reserved_units = units.filter(status=Unit.RESERVED).count()
+    occupancy_rate = int((occupied_units / total_units_count) * 100) if total_units_count else 0
+    reserved_rate = int((reserved_units / total_units_count) * 100) if total_units_count else 0
+    vacant_rate = int((vacant_units / total_units_count) * 100) if total_units_count else 0
+
+    return JsonResponse({
+        'total_units_count': total_units_count,
+        'occupied_units': occupied_units,
+        'vacant_units': vacant_units,
+        'reserved_units': reserved_units,
+        'occupancy_rate': occupancy_rate,
+        'reserved_rate': reserved_rate,
+        'vacant_rate': vacant_rate,
+    })
 
 @login_required
 @user_passes_test(lambda u: u.role == User.OWNER)

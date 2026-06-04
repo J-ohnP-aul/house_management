@@ -115,8 +115,14 @@ function filterUnits(btn, status) {
     });
 }
 </script>
-{% endblock %}
 
+{% endblock %}
 {% block extra_css %}
-.filter-btn.active { background: var(--brand); color: white !important; border-color: var(--brand); }
+<style>
+    .filter-btn.active { 
+        background: var(--brand); 
+        color: white !important; 
+        border-color: var(--brand); 
+    }
+</style>
 {% endblock %}
