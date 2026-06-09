@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Unit Details | Rental Manager{% endblock %}
+{% block topbar_title %}Unit Details{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <a href="{% url 'unit_list' %}" class="btn btn-secondary" style="margin-bottom:18px; display:inline-flex; align-items:center; gap:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Units
+        </a>
+        <h2 style="margin-top:0;">Unit {{ unit.unit_number }}</h2>
+        <p style="color:var(--txt-muted); margin-bottom:1.5rem;">{{ unit.description|default:"No description provided." }}</p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div>
+                <h4 style="font-weight:600; margin-bottom:0.5rem;">Property</h4>
+                <a href="{% url 'property_detail' unit.parent_property.id %}" style="color:var(--brand); text-decoration:none; font-size:13px;">
+                    {{ unit.parent_property.name }}
+                </a>
+            </div>
+            <div>
+                <h4 style="font-weight:600; margin-bottom:0.5rem;">Monthly Rent</h4>
+                <span style="font-family:'DM Mono', monospace; font-size:13px; font-weight:500;">
+                    KES {{ unit.monthly_rent|floatformat:"0" }}
+                </span>
+            </div>
+            <!-- Additional details can be added here -->
+        </div>
+
+        <div style="margin-top:20px;">
+            {% if unit.current_tenant %}
+                <h4 style="font-weight:600; margin-bottom:0.5rem;">Current Tenant</h4>
+                <p>{{ unit.current_tenant }}</p>
+                <p style="color:var(--txt-muted); font-size:13px;">Move-in Date: {{ unit.moveindate }}</p>
+                <p style="color:var(--txt-muted); font-size:13px;">monthlypayment Date: {{ unit.moveindate }}</p>
+                <p style="color:rgb(208, 49, 49); font-size:13px;">Remaining days to Pay: {{ unit.days_until_rent_due }}</p>
+
+            {% else %}
+                <h4 style="font-weight:600; margin-bottom:0.5rem;">Current Tenant</h4>
+                <p>Vacant</p>
+            {% endif %}
+        </div>
+
+        <!-- Action buttons -->
+        <div style="margin-top:30px; display:flex; gap:10px;">
+            <a href="#" class="btn btn-primary">Edit Unit</a>
+            <!-- Additional actions like "View Lease", "Add Maintenance Request" can be added here -->
+        </div>
+    </div>
+</div>
+{% endblock %}

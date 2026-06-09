@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; width:100%;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h2 style="margin:0;">Assign Units</h2>
+        </div>
+        <a href="{% url 'tenancy_create' %}"
+           class="btn btn-primary">
+
+            Assign Unit
+
+        </a>
+    </div>
+
+</div>
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+            <th>Tenant</th>
+            <th>Unit</th>
+            <th>Move In</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for tenancy in tenancies %}
+
+        <tr>
+
+            <td>{{ tenancy.tenant }}</td>
+
+            <td>{{ tenancy.unit }}</td>
+
+            <td>{{ tenancy.move_in_date }}</td>
+
+            <td>{{ tenancy.status }}</td>
+
+            <td>
+
+                <a href="{% url 'tenancy_update' tenancy.id %}">
+                    Edit
+                </a>
+
+                |
+
+                {% if tenancy.status == 'ACTIVE' %}
+
+                <a href="{% url 'tenancy_moved_out' tenancy.id %}">
+                    Move Out
+                </a>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Units | Rental Manager{% endblock %}
+{% block topbar_title %}Units{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Units</h1>
+        <p>Manage all rental units across your properties</p>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+        <!-- Status filter -->
+        <div style="display:flex; gap:6px;">
+            <button class="btn btn-secondary btn-sm filter-btn active" data-filter="ALL" onclick="filterUnits(this, 'ALL')">All</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-filter="OCCUPIED" onclick="filterUnits(this, 'OCCUPIED')" style="color:var(--green);">Occupied</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-filter="RESERVED" onclick="filterUnits(this, 'RESERVED')" style="color:var(--amber);">Reserved</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-filter="VACANT" onclick="filterUnits(this, 'VACANT')" style="color:var(--txt-muted);">Vacant</button>
+        </div>
+
+        <a href="{% url 'unit_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Unit
+        </a>
+    </div>
+</div>
+
+{% if units %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Unit</th>
+                    <th>Property</th>
+                    <th>Monthly Rent</th>
+                    <th>Status</th>
+                    <th>Tenant</th>
+                    <th>Since</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="unitTable">
+                {% for unit in units %}
+                <tr class="unit-row" data-status="{{ unit.status }}">
+                    <td>
+                        <div style="font-weight:600; font-size:14px;">{{ unit.unit_number }}</div>
+                        {% if unit.description %}<div style="font-size:11.5px; color:var(--txt-muted);">{{ unit.description|truncatechars:30 }}</div>{% endif %}
+                    </td>
+                    <td>
+                        <a  style="color:var(--brand); text-decoration:none; font-size:13px;">
+                            {{ unit.parent_property }}
+                        </a>
+                    </td>
+                    <td>
+                        <span style="font-family:'DM Mono', monospace; font-size:13px; font-weight:500;">
+                            KES {{ unit.monthly_rent|floatformat:"0" }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if unit.status == 'OCCUPIED' %}
+                            <span class="badge badge-green"><i class="fas fa-circle" style="font-size:7px; margin-right:5px;"></i>Occupied</span>
+                        {% elif unit.status == 'RESERVED' %}
+                            <span class="badge badge-amber"><i class="fas fa-circle" style="font-size:7px; margin-right:5px;"></i>Reserved</span>
+                        {% else %}
+                            <span class="badge badge-gray"><i class="fas fa-circle" style="font-size:7px; margin-right:5px;"></i>Vacant</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if unit.current_tenant %}
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div class="avatar" style="width:26px; height:26px; font-size:10px;">{{ unit.current_tenant.full_name|first|upper }}</div>
+                                <span style="font-size:13px;">{{ unit.current_tenant.full_name }}</span>
+                            </div>
+                        {% else %}
+                            <span style="color:var(--txt-muted); font-size:13px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--txt-muted); font-size:13px;">
+                        {% if unit.current_tenant %}{{ unit.current_tenant.move_in_date|date:"M d, Y" }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{% url 'unit_detail' unit.id %}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i class="fas fa-door-open"></i>
+        <h3>No units added yet</h3>
+        <p>Units represent individual rental spaces within your properties.</p>
+        <a href="{% url 'unit_create' %}" class="btn btn-primary" style="margin-top:16px;">
+            <i class="fas fa-plus"></i> Add First Unit
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterUnits(btn, status) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.unit-row').forEach(row => {
+        row.style.display = (status === 'ALL' || row.dataset.status === status) ? '' : 'none';
+    });
+}
+</script>
+
+{% endblock %}
+{% block extra_css %}
+<style>
+    .filter-btn.active { 
+        background: var(--brand); 
+        color: white !important; 
+        border-color: var(--brand); 
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,305 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}{{ property.name }} | Rental Manager{% endblock %}
+{% block topbar_title %}Property Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+  .pd-hero {
+    display:grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr);
+    gap:24px;
+  }
+  .pd-card-row {
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap:18px;
+  }
+  .pd-tab-list {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .pd-tab {
+    padding:12px 16px;
+    border-radius:var(--radius-md);
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--txt-primary);
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+  }
+  .pd-tab.active {
+    background:var(--brand);
+    color:white;
+    border-color:var(--brand);
+  }
+  .pd-panel { display:none; }
+  .pd-panel.active { display:block; }
+  .pd-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .pd-info-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
+  .pd-overview { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px; margin-top:24px; }
+  .pd-hero-image { width:100%; min-height:320px; object-fit:cover; border-radius:var(--radius-lg); }
+  .pd-activity-list { display:grid; gap:14px; }
+  .pd-activity-item { display:flex; justify-content:space-between; gap:12px; padding:14px 16px; border-radius:var(--radius-md); background:var(--bg); }
+  .pd-activity-item strong { color:var(--txt-primary); }
+  @media (max-width: 1024px) {
+    .pd-hero, .pd-card-row, .pd-info-grid, .pd-overview { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom:24px; gap:16px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start;">
+  <div>
+    <p class="badge badge-amber">Property</p>
+    <h1 style="margin:12px 0 8px;">{{ property.name }}</h1>
+    <p style="color:var(--txt-muted); max-width:700px;">{{ property.description }}</p>
+  </div>
+  <div class="pd-actions">
+    <a href="{% url 'unit_create' %}" class="btn btn-secondary"><i class="fas fa-door-open"></i> Add Unit</a>
+    <a href="{% url 'property_update' property.id %}" class="btn btn-secondary"><i class="fas fa-edit"></i> Edit Property</a>
+    <a href="{% url 'property_list' %}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back to Properties</a>
+  </div>
+</div>
+
+<div class="pd-hero">
+  <div class="card">
+    <div class="card-body">
+      {% if property.image %}
+        <img src="{{ property.image.url }}" alt="{{ property.name }}" class="pd-hero-image">
+      {% else %}
+        <div class="pd-hero-image-placeholder" style="background: #f1f5f9; height: 250px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px dashed #cbd5e1;">
+          <div style="text-align: center; color: #64748b;">
+            <i class="fas fa-building" style="font-size: 40px; margin-bottom: 8px;"></i>
+            <p style="margin: 0; font-size: 14px;">No image available</p>
+          </div>
+        </div>
+      {% endif %}
+      <div class="pd-info-grid" style="margin-top:20px;">
+        <div class="card" style="border:1px solid var(--border);">
+          <div class="card-body">
+            <div class="badge badge-green">Status</div>
+            <h3 style="margin:12px 0 0;">{{ property.active|yesno:"Active,Inactive" }}</h3>
+            <p style="margin:10px 0 0; color:var(--txt-muted);">This property is currently {{ property.active|yesno:"active,inactive" }} in the portfolio.</p>
+          </div>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div class="card-body">
+            <div class="badge badge-green">Location</div>
+            <h3 style="margin:12px 0 0;">{{ property.location }}</h3>
+            <p style="margin:10px 0 0; color:var(--txt-muted);">Address and neighborhood information.</p>
+          </div>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div class="card-body">
+            <div class="badge badge-blue">Created</div>
+            <h3 style="margin:12px 0 0;">{{ property.created_at|date:"M d, Y" }}</h3>
+            <p style="margin:10px 0 0; color:var(--txt-muted);">Date the property was added.</p>
+          </div>
+        </div>
+        <div class="card" style="border:1px solid var(--border);">
+          <div class="card-body">
+            <div class="badge badge-amber">Portfolio</div>
+            <h3 style="margin:12px 0 0;">Rental Asset</h3>
+            <p style="margin:10px 0 0; color:var(--txt-muted);">Managed property record.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <div>
+        <h2 style="margin:0;">Property Metrics</h2>
+        <p style="margin:4px 0 0; color:var(--txt-muted);">Live unit and tenant statistics for this property.</p>
+      </div>
+      <a href="#" class="btn btn-primary"><i class="fas fa-money-bill-wave"></i> Record Payment</a>
+    </div>
+    <div class="card-body">
+      <div class="stat-grid pd-card-row">
+        <div class="stat-card">
+          <div class="stat-value">{{ total_units|default:"0" }}</div>
+          <div class="stat-label">Total Units</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ occupied_units|default:"0" }}</div>
+          <div class="stat-label">Occupied</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ reserved_units|default:"0" }}</div>
+          <div class="stat-label">Reserved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ vacant_units|default:"0" }}</div>
+          <div class="stat-label">Vacant</div>
+        </div>
+      </div>
+      <div class="stat-grid pd-card-row" style="margin-top:16px;">
+        <div class="stat-card">
+          <div class="stat-value">{{ occupancy_pct|default:"0" }}%</div>
+          <div class="stat-label">Occupancy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ active_tenants|default:"0" }}</div>
+          <div class="stat-label">Active Tenants</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ moved_out_tenants|default:"0" }}</div>
+          <div class="stat-label">Moved Out</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ occupied_units|default:"0" }}</div>
+          <div class="stat-label">Current Check</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-body">
+    <nav class="pd-tab-list" role="tablist" aria-label="Property detail tabs">
+      <button class="pd-tab active" type="button" data-tab="units"><i class="fas fa-door-open"></i> Units</button>
+      <button class="pd-tab" type="button" data-tab="tenants"><i class="fas fa-users"></i> Tenants</button>
+      <button class="pd-tab" type="button" data-tab="maintenance"><i class="fas fa-tools"></i> Maintenance</button>
+      <button class="pd-tab" type="button" data-tab="documents"><i class="fas fa-folder-open"></i> Documents</button>
+    </nav>
+
+    <div id="units" class="pd-panel active">
+      <div class="table-wrap">
+        {% if units %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>Status</th>
+              <th>Rent</th>
+              <th>Updated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for unit in units %}
+            <tr>
+              <td>{{ unit.unit_number }}</td>
+              <td>
+                {% if unit.status == 'OCCUPIED' %}
+                  <span class="badge badge-green">Occupied</span>
+                {% elif unit.status == 'RESERVED' %}
+                  <span class="badge badge-amber">Reserved</span>
+                {% else %}
+                  <span class="badge">Vacant</span>
+                {% endif %}
+              </td>
+              <td>KES {{ unit.monthly_rent|floatformat:"0" }}</td>
+              <td>{{ unit.updated_at|date:"M d" }}</td>
+              <td><a href="{% url 'unit_detail' unit.id %}" class="btn btn-secondary btn-sm">View</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <i class="fas fa-door-open"></i>
+          <h3>No units found</h3>
+          <p>Add a unit to begin tracking occupancy and rent.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div id="tenants" class="pd-panel">
+      <div class="pd-overview">
+        <div class="card">
+          <div class="card-body">
+            <div class="badge badge-green">Active</div>
+            <h3>{{ active_tenants|default:"0" }}</h3>
+            <p style="color:var(--txt-muted);">Tenants with active leases at this property.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="badge badge-gray">Moved Out</div>
+            <h3>{{ moved_out_tenants|default:"0" }}</h3>
+            <p style="color:var(--txt-muted);">Tenants who have vacated this property.</p>
+          </div>
+        </div>
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-body">
+            <div class="badge badge-amber">Tenant Notes</div>
+            <p style="margin-top:10px; color:var(--txt-muted);">Keep lease updates, renewals and tenant history close at hand.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="maintenance" class="pd-panel">
+      <div class="card-body" style="padding:0;">
+        <div class="empty-state" style="padding:28px; margin:0; border-radius:var(--radius-lg);">
+          <i class="fas fa-tools"></i>
+          <h3>No maintenance records</h3>
+          <p>Log repairs, inspections, and service requests for this property.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="documents" class="pd-panel">
+      <div class="card-body" style="padding:0;">
+        <div class="empty-state" style="padding:28px; margin:0; border-radius:var(--radius-lg);">
+          <i class="fas fa-folder-open"></i>
+          <h3>No documents uploaded</h3>
+          <p>Upload leases, reports, and property files to keep everything organized.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <h2 style="margin:0;">Recent activity</h2>
+  </div>
+  <div class="card-body">
+    <div class="pd-activity-list">
+      {% if recent_activity %}
+        {% for activity in recent_activity %}
+          <div class="pd-activity-item">
+            <div>
+              <strong>{{ activity.tenant.full_name }}</strong>
+              <div style="color:var(--txt-muted); font-size:13px;">{{ activity.unit.unit_number }} · {{ activity.status|title }}</div>
+            </div>
+            <div style="text-align:right; color:var(--txt-muted); font-size:13px;">
+              {{ activity.updated_at|date:"M d, Y" }}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-history"></i>
+          <h3>No recent activity</h3>
+          <p>Events will show here once tenants, payments or moves are recorded.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.pd-tab').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.pd-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.pd-panel').forEach(panel => panel.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(button.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+{% endblock %}

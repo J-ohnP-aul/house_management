@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Maintenance #{{ maintenance.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white d-flex justify-content-between">
+            <h3>Maintenance Request #{{ maintenance.id }}</h3>
+            <div>
+                <a href="{% url 'm_update' maintenance.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'm_delete' maintenance.pk %}" class="btn btn-sm btn-danger">Delete</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table table-borderless">
+                <tr><th style="width:180px">Unit:</th><td>{{ maintenance.unit.unit_number }}</td></tr>
+                <tr><th>Title:</th><td>{{ maintenance.title }}</td></tr>
+                <tr><th>Description:</th><td>{{ maintenance.description|linebreaks }}</td></tr>
+                <tr><th>Category:</th><td>{{ maintenance.get_category_display }}</td></tr>
+                <tr><th>Priority:</th><td>{{ maintenance.get_priority_display }}</td></tr>
+                <tr><th>Status:</th><td>{{ maintenance.get_status_display }}</td></tr>
+                <tr><th>Request Date:</th><td>{{ maintenance.request_date|date:"Y-m-d H:i" }}</td></tr>
+                <tr><th>Completion Date:</th><td>{{ maintenance.completion_date|date:"Y-m-d H:i"|default:"Not completed" }}</td></tr>
+                <tr><th>Cost:</th><td>${{ maintenance.cost }}</td></tr>
+            </table>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'm_list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

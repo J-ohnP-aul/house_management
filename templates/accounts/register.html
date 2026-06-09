@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Register User | House Rental Management{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <h3 style="margin: 0;">Register New User</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}        
+                {% for field in form %}
+                    <div style="margin-bottom: 1rem;">
+                        <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                            {{ field.label }}
+                        </label>
+                        {% if field.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small style="display: block; color: #6c757d; font-size: 0.875rem; margin-top: 0.25rem;">
+                                {{ field.help_text }}
+                            </small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Register User</button>
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary" style="flex: 1; text-align: center; padding: 0.5rem 1rem;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Style for form inputs */
+    input, select, textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+    
+    /* Style for error lists */
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        color: #dc3545;
+        font-size: 0.875rem;
+    }
+    
+    .errorlist li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}

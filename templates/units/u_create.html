@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <a href="{% url 'unit_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Units
+        </a>
+        <h1 class="mb-0">Add New Unit</h1>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+{% endblock %}

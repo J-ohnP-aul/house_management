@@ -1,0 +1,251 @@
+/* ─────────────────────────────────────────────
+   dashboard.css  —  BEM prefix: db-
+   Mobile-first: base = mobile, scale up
+───────────────────────────────────────────── */
+
+/* ── Page layout wrapper ── */
+.db { /* no extra styles needed; inherits .page padding */ }
+
+/* ── Page header ── */
+.page-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* On mobile, hide button text labels — show icon only */
+@media (max-width: 479px) {
+  .btn-icon-mobile .btn-text { display: none; }
+}
+
+/* ── Stat cards ── */
+/* Mobile: 2 columns */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Tablet+: 4 columns */
+@media (min-width: 640px) {
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Smaller font for large KES numbers on small screens */
+.db-stat-value--sm {
+  font-size: 17px !important;
+}
+@media (min-width: 640px) {
+  .db-stat-value--sm { font-size: 22px !important; }
+}
+
+.stat-card .stat-sub {
+  font-size: 11px;
+  color: var(--txt-secondary);
+  margin-top: -4px;
+}
+
+/* ── Two-col row (Financials + Occupancy) ── */
+.db-row { margin-bottom: 14px; }
+
+/* Mobile: stacked */
+.db-row--two,
+.db-row--three {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Tablet: 2-col for --two */
+@media (min-width: 800px) {
+  .db-row--two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+/* Desktop: 3-col for --three */
+@media (min-width: 1024px) {
+  .db-row--three {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+/* ── Financial mini-metric tiles ── */
+.db-fin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* Profit tile spans full width on very small screens */
+.db-fin-tile:last-child { grid-column: span 2; }
+
+@media (min-width: 480px) {
+  .db-fin-grid { grid-template-columns: repeat(3, 1fr); }
+  .db-fin-tile:last-child { grid-column: span 1; }
+}
+
+.db-fin-tile {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.db-fin-tile--profit {
+  background: var(--green-bg);
+  border: 1px solid #c3e0d0;
+}
+.db-fin-label {
+  font-size: 10px;
+  color: var(--txt-muted);
+  margin-bottom: 4px;
+}
+.db-fin-label--profit { color: var(--green-txt); }
+.db-fin-value {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.db-fin-value--green { color: var(--green); }
+.db-fin-value--red   { color: var(--red); }
+.db-fin-currency {
+  font-size: 10px;
+  color: var(--txt-muted);
+}
+.db-fin-currency--profit { color: var(--green-txt); }
+
+/* ── Chart helpers ── */
+.db-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--txt-secondary);
+  margin-bottom: 8px;
+}
+.db-chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.db-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.db-legend-dot--round  { border-radius: 50%; }
+.db-legend-dot--green  { background: var(--green); }
+.db-legend-dot--red    { background: var(--red); }
+.db-legend-dot--amber  { background: var(--amber); }
+.db-legend-dot--gray   { background: var(--txt-muted); }
+
+.db-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 160px;
+}
+.db-chart-wrap--sm { height: 130px; }
+
+/* ── Occupancy rows ── */
+.db-occ-rows {}
+.db-occ-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.db-occ-row:last-child { border-bottom: none; }
+.db-occ-label { width: 78px; font-size: 12px; }
+.db-occ-count { font-size: 15px; font-weight: 600; width: 28px; }
+.db-occ-pct   { font-size: 11px; color: var(--txt-muted); width: 34px; }
+.db-occ-bar   { flex: 1; }
+.db-pb--amber { background: var(--amber) !important; }
+.db-pb--gray  { background: var(--txt-muted) !important; }
+
+.db-donut-section {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Card helpers ── */
+.card-body--flush { padding: 0; }
+.db-empty--compact { padding: 32px 20px; }
+
+/* ── Icon colours ── */
+.db-icon         { margin-right: 7px; }
+.db-icon--brand  { color: var(--brand); }
+.db-icon--red    { color: var(--red); }
+.db-icon--amber  { color: var(--amber); }
+
+/* ── Text utilities ── */
+.text-muted { color: var(--txt-secondary); }
+.text-red   { color: var(--red); }
+
+/* ── Property table helpers ── */
+.db-prop-name     { font-weight: 500; font-size: 12px; }
+.db-prop-location { font-size: 11px; color: var(--txt-muted); }
+.db-progress-inline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.db-pct-label { font-size: 11px; color: var(--txt-muted); }
+
+/* ── Role banners ── */
+.db-banner { border-left: 3px solid var(--border); margin-bottom: 14px; }
+.db-banner--manager  { border-color: var(--brand); }
+.db-banner--caretaker { border-color: var(--amber); }
+.db-banner-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.db-banner-title { font-weight: 600; margin-bottom: 2px; }
+.db-banner-copy  { font-size: 13px; color: var(--txt-secondary); }
+
+/* ── Section label ── */
+.db-section-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--txt-muted);
+  margin: 16px 0 8px;
+}
+
+/* ── Quick links: 2-col mobile, 4-col desktop ── */
+.db-quick-links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (min-width: 640px) {
+  .db-quick-links { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+}
+
+.db-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s;
+}
+.db-quick-link:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.db-quick-link--primary { background: var(--brand-light); border-color: #c3e0d0; }
+
+.db-ql-title { font-size: 12.5px; font-weight: 600; }
+.db-ql-copy  { font-size: 11px; color: var(--txt-muted); }

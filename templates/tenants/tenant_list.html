@@ -1,0 +1,417 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tenants | Rental Manager{% endblock %}
+{% block topbar_title %}Tenants{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/tenant_list.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="{% url 'dashboard' %}">Dashboard</a>
+  <span class="breadcrumb-sep"><i class="fas fa-chevron-right" aria-hidden="true"></i></span>
+  <span class="breadcrumb-current">Tenants</span>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Tenants</h1>
+    <p>Manage all registered tenants across your properties.</p>
+  </div>
+  <div class="tl-header-actions">
+    <a href="" class="btn btn-secondary tl-btn-icon-mobile" aria-label="Export tenants">
+      <i class="fas fa-download" aria-hidden="true"></i>
+      <span class="btn-text">Export upcoming</span>
+    </a>
+    <a href="{% url 'tenant_create' %}" class="btn btn-primary">
+      <i class="fas fa-user-plus" aria-hidden="true"></i>
+      <span>Add Tenant</span>
+    </a>
+  </div>
+</div>
+
+<!-- Summary Stat Pills (horizontally scrollable on mobile) -->
+<div class="tl-pills-wrap">
+  <div class="tl-pills">
+    <div class="tl-pill">
+      <div class="tl-pill-icon" style="background:var(--green-bg);color:var(--green);">
+        <i class="fas fa-users" aria-hidden="true"></i>
+      </div>
+      <div>
+        <div class="tl-pill-value">{{ total_tenants|default:"0" }}</div>
+        <div class="tl-pill-label">Total</div>
+      </div>
+    </div>
+    <div class="tl-pill">
+      <div class="tl-pill-icon" style="background:var(--green-bg);color:var(--green);">
+        <i class="fas fa-check" aria-hidden="true"></i>
+      </div>
+      <div>
+        <div class="tl-pill-value" style="color:var(--green);">{{ active_tenants|default:"0" }}</div>
+        <div class="tl-pill-label">Active</div>
+      </div>
+    </div>
+    <div class="tl-pill">
+      <div class="tl-pill-icon" style="background:#F1F1F1;color:#888;">
+        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+      </div>
+      <div>
+        <div class="tl-pill-value" style="color:var(--txt-muted);">{{ moved_out_tenants|default:"0" }}</div>
+        <div class="tl-pill-label">Moved out</div>
+      </div>
+    </div>
+    <div class="tl-pill">
+      <div class="tl-pill-icon" style="background:var(--red-bg);color:var(--red);">
+        <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+      </div>
+      <div>
+        <div class="tl-pill-value" style="color:var(--red);">{{ total_arrears|default:"0"|floatformat:"0" }}</div>
+        <div class="tl-pill-label">Arrears KES</div>
+      </div>
+    </div>
+    <div class="tl-pill">
+      <div class="tl-pill-icon" style="background:var(--amber-bg);color:var(--amber);">
+        <i class="fas fa-clock" aria-hidden="true"></i>
+      </div>
+      <div>
+        <div class="tl-pill-value" style="color:var(--amber);">{{ overdue_count|default:"0" }}</div>
+        <div class="tl-pill-label">Overdue</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card tl-filter-card">
+  <!-- Search -->
+  <div class="tl-search-wrap">
+    <i class="fas fa-search tl-search-icon" aria-hidden="true"></i>
+    <form method="get" action="">
+      <input
+        type="text"
+        name="q"
+        value="{{ request.GET.q }}"
+        class="tl-search-input"
+        placeholder="Search name, phone, national ID…"
+        aria-label="Search tenants"
+      />
+      {# preserve other filter params #}
+      {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
+      {% if request.GET.property %}<input type="hidden" name="property" value="{{ request.GET.property }}">{% endif %}
+    </form>
+  </div>
+
+  <!-- Tabs + dropdowns -->
+  <div class="tl-filter-row">
+    <div class="tl-filter-tabs" role="tablist" aria-label="Filter by status">
+      <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.property %}property={{ request.GET.property }}&{% endif %}"
+         class="tl-filter-tab {% if not request.GET.status %}active{% endif %}"
+         role="tab" aria-selected="{% if not request.GET.status %}true{% else %}false{% endif %}">
+        All ({{ total_tenants|default:"0" }})
+      </a>
+      <a href="?status=active{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.property %}&property={{ request.GET.property }}{% endif %}"
+         class="tl-filter-tab {% if request.GET.status == 'active' %}active{% endif %}"
+         role="tab" aria-selected="{% if request.GET.status == 'active' %}true{% else %}false{% endif %}">
+        Active ({{ active_tenants|default:"0" }})
+      </a>
+      <a href="?status=overdue{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.property %}&property={{ request.GET.property }}{% endif %}"
+         class="tl-filter-tab {% if request.GET.status == 'overdue' %}active{% endif %}"
+         role="tab" aria-selected="{% if request.GET.status == 'overdue' %}true{% else %}false{% endif %}">
+        Overdue ({{ overdue_count|default:"0" }})
+      </a>
+      <a href="?status=moved_out{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.property %}&property={{ request.GET.property }}{% endif %}"
+         class="tl-filter-tab {% if request.GET.status == 'moved_out' %}active{% endif %}"
+         role="tab" aria-selected="{% if request.GET.status == 'moved_out' %}true{% else %}false{% endif %}">
+        Moved out
+      </a>
+    </div>
+
+    <!-- Property filter -->
+    <form method="get" action="" class="tl-filter-form">
+      {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+      {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
+      <select name="property" class="tl-filter-select" onchange="this.form.submit()" aria-label="Filter by property">
+        <option value="">All properties</option>
+        {% for prop in properties %}
+          <option value="{{ prop.id }}" {% if request.GET.property == prop.id|stringformat:"s" %}selected{% endif %}>
+            {{ prop.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <span class="tl-result-count">{{ tenants.paginator.count|default:"0" }} tenants</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MOBILE VIEW: Card list (hidden ≥ 640px)    -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="tl-mobile-cards" aria-label="Tenant list">
+  {% for t in tenants %}
+  <div class="tl-card">
+    <div class="tl-card-top">
+      <div class="avatar tl-avatar">{{ t.full_name|first|upper }}</div>
+      <div class="tl-card-info">
+        <div class="tl-card-name">{{ t.full_name }}</div>
+        <div class="tl-card-id">ID: {{ t.national_id|default:"—" }}</div>
+      </div>
+      {% if t.is_overdue %}
+        <span class="badge badge-red">Overdue</span>
+      {% elif t.current_unit %}
+        <span class="badge badge-green">Active</span>
+      {% else %}
+        <span class="badge badge-gray">Moved out</span>
+      {% endif %}
+    </div>
+
+    <div class="tl-card-meta">
+      <div class="tl-meta-item">
+        <div class="tl-meta-label">Unit</div>
+        <div>
+          {% if t.current_unit %}
+            <span class="badge badge-blue">{{ t.current_unit.unit_number }}</span>
+          {% else %}
+            <span class="badge badge-gray">—</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="tl-meta-item">
+        <div class="tl-meta-label">Property</div>
+        <div class="tl-meta-value">{{ t.current_unit }}</div>
+      </div>
+      <div class="tl-meta-item">
+        <div class="tl-meta-label">Phone</div>
+        <div class="tl-meta-value">{{ t.phone_number }}</div>
+      </div>
+      <div class="tl-meta-item">
+        <div class="tl-meta-label">Balance</div>
+        <div class="tl-meta-value {% if t.balance < 0 %}tl-bal--neg{% else %}tl-bal--pos{% endif %}">
+          upcoming...
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-card-actions">
+      <a href="{% url 'tenant_detail' t.id %}" class="tl-action-btn">
+        <i class="fas fa-eye" aria-hidden="true"></i> View
+      </a>
+      {% if t.current_unit %}
+      <a href="" class="tl-action-btn tl-action-btn--primary">
+        <i class="fas fa-money-bill-wave" aria-hidden="true"></i> Pay
+      </a>
+      {% endif %}
+      <a href="{% url 'tenant_update' t.id %}" class="tl-action-btn" aria-label="Edit {{ t.full_name }}">
+        <i class="fas fa-edit" aria-hidden="true"></i>
+      </a>
+      {% if t.current_unit %}
+      <a href="" class="tl-action-btn tl-action-btn--danger" aria-label="Move out {{ t.full_name }}">
+        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state" style="background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+    <i class="fas fa-users" aria-hidden="true"></i>
+    <h3>No tenants found</h3>
+    <p>Try adjusting your search or filter.</p>
+    <a href="{% url 'tenant_create' %}" class="btn btn-primary" style="margin-top:12px;">
+      <i class="fas fa-plus" aria-hidden="true"></i> Add Tenant
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- DESKTOP VIEW: Full table (hidden < 640px)   -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="tl-desktop-table">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:36px;padding-right:0;">
+            <input type="checkbox" id="select-all" aria-label="Select all tenants" />
+          </th>
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}sort=name&order={% if request.GET.sort == 'name' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}" class="tl-sort-link">
+              Tenant
+              <i class="fas fa-sort tl-sort-icon {% if request.GET.sort == 'name' %}tl-sort-icon--active{% endif %}" aria-hidden="true"></i>
+            </a>
+          </th>
+          <th>Unit</th>
+          <th>Property</th>
+          <th>Phone</th>
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}sort=move_in&order={% if request.GET.sort == 'move_in' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}" class="tl-sort-link">
+              Move-in
+              <i class="fas fa-sort tl-sort-icon {% if request.GET.sort == 'move_in' %}tl-sort-icon--active{% endif %}" aria-hidden="true"></i>
+            </a>
+          </th>
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}sort=balance&order={% if request.GET.sort == 'balance' and request.GET.order == 'asc' %}desc{% else %}asc{% endif %}" class="tl-sort-link">
+              Balance (KES)
+              <i class="fas fa-sort tl-sort-icon {% if request.GET.sort == 'balance' %}tl-sort-icon--active{% endif %}" aria-hidden="true"></i>
+            </a>
+          </th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tenants %}
+        <tr>
+          <td style="padding-right:0;">
+            <input type="checkbox" class="tl-row-check" value="{{ t.id }}" aria-label="Select {{ t.full_name }}" />
+          </td>
+          <td>
+            <div class="avatar-row">
+              <div class="avatar">{{ t.full_name|first|upper }}</div>
+              <div>
+                <div style="font-weight:500;">{{ t.full_name }}</div>
+                <div style="font-size:11px;color:var(--txt-muted);">ID: {{ t.national_id|default:"—" }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            {% if t.current_unit %}
+              <span class="badge badge-blue">{{ t.current_unit.unit_number }}</span>
+            {% else %}
+              <span class="badge badge-gray">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted" style="font-size:12px;">{{ t.current_unit.property.name|default:"—" }}</td>
+          <td class="text-muted" style="font-size:12px;">{{ t.phone_number }}</td>
+          <td class="text-muted" style="font-size:12px;">{{ t.move_in_date|date:"d M Y"|default:"—" }}</td>
+          <td>
+            <span class="{% if t.balance < 0 %}tl-bal--neg{% else %}tl-bal--pos{% endif %}">
+                upcoming ....
+            </span>
+          </td>
+          <td>
+            {% if t.is_overdue %}
+              <span class="badge badge-red">Overdue</span>
+            {% elif t.current_unit %}
+              <span class="badge badge-green">Active</span>
+            {% else %}
+              <span class="badge badge-gray">Moved out</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="tl-row-actions">
+              <a href="{% url 'tenant_detail' t.id %}" class="tl-action-icon" title="View {{ t.full_name }}">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </a>
+              <a href="{% url 'tenant_update' t.id %}" class="tl-action-icon" title="Edit {{ t.full_name }}">
+                <i class="fas fa-edit" aria-hidden="true"></i>
+              </a>
+              {% if t.current_unit %}
+              <a href="" class="tl-action-icon" title="Record payment for {{ t.full_name }}">
+                <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
+              </a>
+              <a href="" class="tl-action-icon tl-action-icon--danger" title="Move out {{ t.full_name }}">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+              </a>
+              {% else %}
+              <a href="{% url 'tenant_detail' t.id %}#history" class="tl-action-icon" title="View history">
+                <i class="fas fa-history" aria-hidden="true"></i>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9">
+            <div class="empty-state">
+              <i class="fas fa-users" aria-hidden="true"></i>
+              <h3>No tenants found</h3>
+              <p>Try adjusting your search or filters.</p>
+              <a href="{% url 'tenant_create' %}" class="btn btn-primary" style="margin-top:12px;">
+                <i class="fas fa-plus" aria-hidden="true"></i> Add Tenant
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if tenants.has_other_pages %}
+<div class="tl-pagination">
+  <span class="tl-pag-info">
+    Showing {{ tenants.start_index }}–{{ tenants.end_index }} of {{ tenants.paginator.count }} tenants
+  </span>
+  <div class="tl-pag-btns">
+    {% if tenants.has_previous %}
+      <a href="?page={{ tenants.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.property %}&property={{ request.GET.property }}{% endif %}"
+         class="tl-pag-btn" aria-label="Previous page">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+      </a>
+    {% else %}
+      <span class="tl-pag-btn tl-pag-btn--disabled" aria-disabled="true">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+
+    {% for num in tenants.paginator.page_range %}
+      {% if tenants.number == num %}
+        <span class="tl-pag-btn tl-pag-btn--active" aria-current="page">{{ num }}</span>
+      {% elif num >= tenants.number|add:"-2" and num <= tenants.number|add:"2" %}
+        <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.property %}&property={{ request.GET.property }}{% endif %}"
+           class="tl-pag-btn" aria-label="Page {{ num }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if tenants.has_next %}
+      <a href="?page={{ tenants.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.property %}&property={{ request.GET.property }}{% endif %}"
+         class="tl-pag-btn" aria-label="Next page">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+      </a>
+    {% else %}
+      <span class="tl-pag-btn tl-pag-btn--disabled" aria-disabled="true">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Select-all checkbox
+const selectAll = document.getElementById('select-all');
+if (selectAll) {
+  selectAll.addEventListener('change', function () {
+    document.querySelectorAll('.tl-row-check').forEach(cb => cb.checked = this.checked);
+  });
+}
+// Live search (debounced)
+const searchInput = document.querySelector('.tl-search-input');
+if (searchInput) {
+  let debounceTimer;
+  searchInput.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (this.value) params.set('q', this.value);
+      else params.delete('q');
+      params.delete('page');
+      window.location.search = params.toString();
+    }, 500);
+  });
+}
+</script>
+{% endblock %}
