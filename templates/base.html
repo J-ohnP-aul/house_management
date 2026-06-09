@@ -17,6 +17,7 @@
 
   <!-- Base styles -->
   <link rel="stylesheet" href="{% static 'styles/main.css' %}">
+  <link rel="stylesheet" href="{% static 'styles/propdesk.css' %}">
 
   {% block extra_css %}{% endblock %}
 </head>
@@ -27,17 +28,24 @@
 <aside class="sidebar" id="sidebar" aria-label="Main navigation">
 
   <!-- Brand -->
-  <a href="{% url 'home' %}" class="sidebar-brand">
-    <div class="brand-icon"><i class="fas fa-building" aria-hidden="true"></i></div>
+  <a href="{% url 'home' %}" class="sb-brand">
+    <div class="sb-logo"><i class="fas fa-building" aria-hidden="true"></i></div>
     <div>
-      <div class="brand-name">Rental Manager</div>
-      <div class="brand-sub">Property System</div>
+      <div class="sb-name">Rental Manager</div>
+      <div class="sb-sub">Property Management</div>
     </div>
   </a>
 
-  <!-- Main -->
-  <div class="sidebar-section-label">Main</div>
-  <ul class="sidebar-nav">
+  <div class="sb-search">
+    <div class="sb-search-inner">
+      <i class="fas fa-search"></i>
+      <span>Search anything…</span>
+      <kbd>⌘K</kbd>
+    </div>
+  </div>
+
+  <div class="sb-section">Overview</div>
+  <ul class="sb-nav">
     <li>
       <a href="{% url 'dashboard' %}"
          class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
@@ -49,8 +57,8 @@
 
   <!-- Properties (Owner / Manager only) -->
   {% if user.role == 'OWNER' or user.role == 'MANAGER' %}
-  <div class="sidebar-section-label">Properties</div>
-  <ul class="sidebar-nav">
+  <div class="sb-section">Properties</div>
+  <ul class="sb-nav">
     <li>
       <a href="{% url 'property_list' %}"
          class="{% if 'property' in request.resolver_match.url_name %}active{% endif %}"
@@ -69,8 +77,8 @@
   {% endif %}
 
   <!-- Tenants & Rent -->
-  <div class="sidebar-section-label">Tenants &amp; Rent</div>
-  <ul class="sidebar-nav">
+  <div class="sb-section">Tenants &amp; Rent</div>
+  <ul class="sb-nav">
     <li>
       <a href="{% url 'tenant_list' %}"
          class="{% if 'tenant' in request.resolver_match.url_name %}active{% endif %}"
@@ -105,8 +113,8 @@
   </ul>
 
   <!-- Finance -->
-  <div class="sidebar-section-label">Finance</div>
-  <ul class="sidebar-nav">
+  <div class="sb-section">Finance</div>
+  <ul class="sb-nav">
     <li>
       <a href=""
          class="{% if 'expense' in request.resolver_match.url_name %}active{% endif %}"
@@ -124,10 +132,12 @@
   </ul>
 
   <!-- Maintenance -->
-  <div class="sidebar-section-label">Maintenance</div>
-  <ul class="sidebar-nav">
+  <div class="sb-section">Operations</div>
+  <ul class="sb-nav">
     <li>
-      <a href="{% url 'm_list' %}">
+      <a href="{% url 'm_list' %}"
+         class="{% if request.resolver_match.url_name|slice:"0:2" == 'm_' %}active{% endif %}"
+         aria-current="{% if request.resolver_match.url_name|slice:"0:2" == 'm_' %}page{% endif %}">
         <i class="fas fa-tools" aria-hidden="true"></i> Requests
         {% if pending_maintenance_count %}
           <span class="nav-badge" aria-label="{{ pending_maintenance_count }} pending">{{ pending_maintenance_count }}</span>
@@ -138,8 +148,8 @@
 
   <!-- Admin (Owner only) -->
   {% if user.role == 'OWNER' %}
-  <div class="sidebar-section-label">Admin</div>
-  <ul class="sidebar-nav">
+  <div class="sb-section">Admin</div>
+  <ul class="sb-nav">
     <li>
       <a href="{% url 'user_list' %}"
          class="{% if 'user' in request.resolver_match.url_name %}active{% endif %}"
@@ -151,16 +161,16 @@
   {% endif %}
 
   <!-- User card / footer -->
-  <div class="sidebar-footer">
-    <div class="user-card" onclick="toggleDropdown('userDrop')" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">
-      <div class="user-avatar" aria-hidden="true">
+  <div class="sb-footer">
+    <div class="sb-user" onclick="toggleDropdown('userDrop')" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">
+      <div class="sb-av" aria-hidden="true">
         {{ user.get_full_name|default:user.username|first|upper }}
       </div>
-      <div class="user-info">
-        <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
-        <div class="user-role">{{ user.get_role_display }}</div>
+      <div style="flex:1;min-width:0">
+        <div class="sb-uname">{{ user.get_full_name|default:user.username }}</div>
+        <div class="sb-urole">{{ user.get_role_display }}</div>
       </div>
-      <i class="fas fa-ellipsis-v user-ellipsis" aria-hidden="true"></i>
+      <i class="fas fa-dots-vertical" aria-hidden="true"></i>
 
       <div class="dropdown-menu anchored-top" id="userDrop" role="menu">
         <a href="{% url 'profile' %}" class="dropdown-item" role="menuitem">
@@ -175,6 +185,13 @@
         </form>
       </div>
     </div>
+    <form method="post" action="{% url 'logout' %}" class="sb-footer-logout">
+      {% csrf_token %}
+      <button type="submit" class="sb-logout-btn">
+        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+        Logout
+      </button>
+    </form>
   </div>
 </aside>
 {% endif %}
@@ -195,17 +212,24 @@
       <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
-    <span class="topbar-title">{% block topbar_title %}{% endblock %}</span>
+    <div class="tb-breadcrumb">
+      <i class="fas fa-home"></i>
+      <i class="fas fa-chevron-right tb-divider" aria-hidden="true"></i>
+      <span class="breadcrumb-current">{% block topbar_title %}{% endblock %}</span>
+    </div>
+    <span class="tb-date">{% now "F Y" %} · All properties</span>
 
-    <div class="topbar-right">
-      <a href="" class="topbar-btn notif-dot" title="Notifications" aria-label="Notifications">
+    <div class="tb-right">
+      <a href="" class="tb-icon-btn" title="Search" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="" class="tb-icon-btn notif-dot" title="Notifications" aria-label="Notifications">
         <i class="fas fa-bell" aria-hidden="true"></i>
       </a>
-      <a href="" class="topbar-btn topbar-btn--hide-mobile" title="Settings" aria-label="Settings">
+      <a href="" class="tb-icon-btn topbar-btn--hide-mobile" title="Settings" aria-label="Settings">
         <i class="fas fa-cog" aria-hidden="true"></i>
       </a>
-      <!-- Mobile: avatar shortcut to profile -->
-      <a href="" class="topbar-avatar topbar-avatar--mobile" aria-label="Profile">
+      <a href="" class="tb-avatar topbar-avatar--mobile" aria-label="Profile">
         {{ user.get_full_name|default:user.username|first|upper }}
       </a>
     </div>
@@ -232,48 +256,6 @@
   </main>
 
 </div><!-- /.main -->
-
-{% if user.is_authenticated %}
-<nav class="bottom-nav" aria-label="Mobile navigation">
-  <a href="{% url 'dashboard' %}"
-     class="bottom-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-     aria-current="{% if request.resolver_match.url_name == 'dashboard' %}page{% endif %}">
-    <i class="fas fa-th-large" aria-hidden="true"></i>
-    <span>Home</span>
-  </a>
-
-  {% if user.role == 'OWNER' or user.role == 'MANAGER' %}
-  <a href="{% url 'property_list' %}"
-     class="bottom-nav-item {% if 'property' in request.resolver_match.url_name or 'unit' in request.resolver_match.url_name %}active{% endif %}"
-     aria-current="{% if 'property' in request.resolver_match.url_name %}page{% endif %}">
-    <i class="fas fa-building" aria-hidden="true"></i>
-    <span>Properties</span>
-  </a>
-  {% endif %}
-
-  <a href="{% url 'tenant_list' %}"
-     class="bottom-nav-item {% if 'tenant' in request.resolver_match.url_name %}active{% endif %}"
-     aria-current="{% if 'tenant' in request.resolver_match.url_name %}page{% endif %}">
-    <i class="fas fa-users" aria-hidden="true"></i>
-    <span>Tenants</span>
-  </a>
-
-  <a href=""
-     class="bottom-nav-item {% if 'rent_payment' in request.resolver_match.url_name %}active{% endif %}
-            {% if overdue_count %}bottom-nav-item--badge{% endif %}"
-     aria-current="{% if 'rent_payment' in request.resolver_match.url_name %}page{% endif %}"
-     aria-label="Rent Payments{% if overdue_count %}, {{ overdue_count }} overdue{% endif %}">
-    <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
-    <span>Rent</span>
-  </a>
-
-  <!-- "More" opens the sidebar panel on mobile -->
-  <button class="bottom-nav-item" onclick="openSidebar()" aria-label="More navigation options" aria-controls="sidebar">
-    <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
-    <span>More</span>
-  </button>
-</nav>
-{% endif %}
 
 <script>
   /* ── Sidebar open/close ── */
@@ -328,4 +310,3 @@
 {% block extra_js %}{% endblock %}
 
 </body>
-</html>

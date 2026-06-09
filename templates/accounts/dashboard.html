@@ -67,7 +67,7 @@
         <div class="stat-icon red"><i class="fas fa-exclamation-circle" aria-hidden="true"></i></div>
         <span class="stat-trend down">{{ overdue_count|default:"0" }} tenants</span>
       </div>
-      <div class="stat-value db-stat-value--sm">{{ total_arrears|default:"0"|floatformat:"0" }}</div>
+      <div class="stat-value db-stat-value--sm">{{ outstanding_arrears|default:"0"|floatformat:"0" }}</div>
       <div class="stat-label">Outstanding Arrears · KES</div>
     </div>
   </div>
