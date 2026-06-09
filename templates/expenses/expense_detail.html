@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Expense Details | Rental Manager{% endblock %}
+{% block topbar_title %}Expense Details{% endblock %}
+
+{% block content %}
+<div class="page-header" style="justify-content: space-between; align-items: center; gap: 20px;">
+    <div>
+        <h1>Expense details</h1>
+        <p class="text-muted">Review an individual expense record.</p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="{% url 'expense_update' expense.pk %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'expense_list' %}" class="btn btn-secondary">Back to list</a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:24px; margin-bottom:24px;">
+            <div>
+                <h4>Expense information</h4>
+                <p><strong>Property:</strong> {% if expense.property %}{{ expense.property.name }}{% else %}General{% endif %}</p>
+                <p><strong>Vendor:</strong> {{ expense.vendor|default:'N/A' }}</p>
+                <p><strong>Category:</strong> {{ expense.get_category_display }}</p>
+                <p><strong>Status:</strong> {{ expense.get_status_display }}</p>
+                <p><strong>Date:</strong> {{ expense.expense_date|date:'F j, Y' }}</p>
+            </div>
+            <div>
+                <h4>Amount</h4>
+                <p class="expense-amount">${{ expense.amount|floatformat:2 }}</p>
+                <p><strong>Created by:</strong> {{ expense.created_by.get_full_name|default:expense.created_by.username }}</p>
+                <p><strong>Recorded:</strong> {{ expense.created_at|date:'F j, Y H:i' }}</p>
+                <p><strong>Last updated:</strong> {{ expense.updated_at|date:'F j, Y H:i' }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-3" style="background: var(--bg);">
+            <div class="card-body">
+                <h4>Description</h4>
+                <p>{{ expense.description|linebreaksbr|default:'No additional notes provided.' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

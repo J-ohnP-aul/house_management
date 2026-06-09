@@ -116,7 +116,7 @@
   <div class="sb-section">Finance</div>
   <ul class="sb-nav">
     <li>
-      <a href=""
+      <a href="{% url 'expense_list' %}"
          class="{% if 'expense' in request.resolver_match.url_name %}active{% endif %}"
          aria-current="{% if 'expense' in request.resolver_match.url_name %}page{% endif %}">
         <i class="fas fa-receipt" aria-hidden="true"></i> Expenses
