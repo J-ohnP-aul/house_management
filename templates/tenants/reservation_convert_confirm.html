@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:500px; margin:40px auto;">
+  <div class="card-header">
+    <span class="card-title">Convert Reservation to Tenancy</span>
+  </div>
+  <div class="card-body">
+    <p>Are you sure you want to convert <strong>{{ reservation.full_name }}</strong>'s reservation for unit <strong>{{ reservation.unit.unit_number }}</strong> into an active tenancy?</p>
+    <p>The tenant will be created automatically, and the unit will become occupied.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <button type="submit" class="btn btn-primary">Yes, Convert</button>
+        <a href="{% url 'reservation_list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

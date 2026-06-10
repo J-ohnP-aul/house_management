@@ -1,78 +1,518 @@
 {% extends 'base.html' %}
+{% load static %}
 
+{% block title %}Assign Units | Rental Manager{% endblock %}
+{% block topbar_title %}Assign Units{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Tenancy-specific overrides (keep BEM-like prefix "tn-") */
+  .tn-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media (min-width: 640px) {
+    .tn-stat-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+  }
+  .tn-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tn-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--txt-primary);
+    line-height: 1;
+  }
+  .tn-stat-label {
+    font-size: 11.5px;
+    color: var(--txt-muted);
+  }
+
+  /* Mobile cards */
+  .tn-mobile-cards {
+    display: block;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .tn-mobile-cards { display: none; }
+  }
+  .tn-card {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tn-card:last-child { border-bottom: none; }
+  .tn-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .tn-card-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--green-bg);
+    display: flex;
+    align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  .tn-card-info { flex: 1; }
+  .tn-card-name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tn-card-unit {
+    font-size: 12px;
+    color: var(--txt-muted);
+  }
+  .tn-card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    margin-bottom: 12px;
+  }
+  .tn-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .tn-meta-label {
+    font-size: 10px;
+    color: var(--txt-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tn-meta-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--txt-primary);
+  }
+  .tn-card-actions {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .tn-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--txt-secondary);
+    transition: all 0.12s;
+    min-height: 34px;
+  }
+  .tn-action-btn i { font-size: 12px; }
+  .tn-action-btn:hover { background: var(--border); color: var(--txt-primary); }
+  .tn-action-btn--primary {
+    background: var(--brand-light);
+    color: var(--brand);
+    border-color: var(--brand);
+  }
+  .tn-action-btn--primary:hover { background: #d4ede1; }
+  .tn-action-btn--danger {
+    background: var(--red-bg);
+    color: var(--red-txt);
+    border-color: #f5c1c1;
+  }
+  .tn-action-btn--danger:hover { background: #fad8d8; }
+
+  /* Desktop table */
+  .tn-desktop-table {
+    display: none;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow-x: auto;
+  }
+  @media (min-width: 640px) {
+    .tn-desktop-table { display: block; }
+  }
+  .tn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .tn-table th {
+    padding: 12px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--txt-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: left;
+  }
+  .tn-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .tn-table tr:last-child td { border-bottom: none; }
+  .tn-table tr:hover td { background: #FAFBFA; }
+
+  .tn-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .tn-icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--txt-secondary);
+    text-decoration: none;
+    transition: all 0.12s;
+  }
+  .tn-icon-btn:hover { background: var(--bg); color: var(--txt-primary); }
+  .tn-icon-btn.danger:hover {
+    background: var(--red-bg);
+    color: var(--red-txt);
+    border-color: #f5c1c1;
+  }
+
+  /* Filter bar */
+  .tn-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 16px;
+  }
+  .tn-search {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+  }
+  .tn-search i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--txt-muted);
+    font-size: 13px;
+  }
+  .tn-search input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--surface);
+  }
+  .tn-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tn-filter-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--txt-secondary);
+    transition: all 0.12s;
+  }
+  .tn-filter-badge.active {
+    background: var(--brand);
+    color: white;
+    border-color: var(--brand);
+  }
+  .tn-filter-badge:hover:not(.active) {
+    background: var(--border);
+  }
+  .tn-result-count {
+    font-size: 12px;
+    color: var(--txt-muted);
+    margin-left: auto;
+  }
+</style>
+{% endblock %}
 {% block content %}
+<div class="tenancy-list-container">
 
-<div class="page-header">
-
-    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; width:100%;">
-        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
-            <h2 style="margin:0;">Assign Units</h2>
-        </div>
-        <a href="{% url 'tenancy_create' %}"
-           class="btn btn-primary">
-
-            Assign Unit
-
-        </a>
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>
+        <span class="breadcrumb-current">Assign Units</span>
+      </div>
+      <h1>Assign Units</h1>
+      <p>Manage active tenancies and move‑out records</p>
     </div>
+    <div class="page-header-actions">
+      <a href="{% url 'tenancy_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> <span class="btn-text">Assign Unit</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="tn-stat-grid">
+    <div class="tn-stat-card">
+      <div class="tn-stat-value">{{ tenancies|length }}</div>
+      <div class="tn-stat-label">Total Tenancies</div>
+    </div>
+    <div class="tn-stat-card">
+      <div class="tn-stat-value">{{ active_count|default:"0" }}</div>
+      <div class="tn-stat-label">Active</div>
+    </div>
+    <div class="tn-stat-card">
+      <div class="tn-stat-value">{{ moved_out_count|default:"0" }}</div>
+      <div class="tn-stat-label">Moved Out</div>
+    </div>
+    <div class="tn-stat-card">
+      <div class="tn-stat-value">{{ occupancy_rate|default:"0" }}%</div>
+      <div class="tn-stat-label">Occupancy Rate</div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="tn-filter-bar">
+    <div class="tn-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="tnSearchInput" placeholder="Search tenant or unit...">
+    </div>
+    <div class="tn-filter" id="tnStatusFilter">
+      <span data-status="all" class="tn-filter-badge active">All</span>
+      <span data-status="ACTIVE" class="tn-filter-badge">Active</span>
+      <span data-status="MOVED_OUT" class="tn-filter-badge">Moved Out</span>
+    </div>
+    <div class="tn-result-count" id="tnResultCount">
+      Showing <span id="tnVisibleCount">{{ tenancies|length }}</span> tenancies
+    </div>
+  </div>
+
+  <!-- Mobile Cards View -->
+  <div class="tn-mobile-cards" id="tnMobileCards">
+    {% for tenancy in tenancies %}
+    <div class="tn-card" data-status="{{ tenancy.status }}" data-search="{{ tenancy.tenant.name|lower }} {{ tenancy.unit.unit_number|lower }}">
+      <div class="tn-card-top">
+        <div class="tn-card-avatar">{{ tenancy.tenant.name|first|upper }}</div>
+        <div class="tn-card-info">
+          <div class="tn-card-name">{{ tenancy.tenant.name }}</div>
+          <div class="tn-card-unit">{{ tenancy.unit.unit_number }} · {{ tenancy.unit.property.name }}</div>
+        </div>
+        {% if tenancy.status == 'ACTIVE' %}
+          <span class="badge badge-green">Active</span>
+        {% else %}
+          <span class="badge badge-gray">Moved Out</span>
+        {% endif %}
+      </div>
+      <div class="tn-card-meta">
+        <div class="tn-meta-item">
+          <span class="tn-meta-label">Move In</span>
+          <span class="tn-meta-value">{{ tenancy.move_in_date|date:"d M Y" }}</span>
+        </div>
+        {% if tenancy.move_out_date %}
+        <div class="tn-meta-item">
+          <span class="tn-meta-label">Move Out</span>
+          <span class="tn-meta-value">{{ tenancy.move_out_date|date:"d M Y" }}</span>
+        </div>
+        {% endif %}
+        <div class="tn-meta-item">
+          <span class="tn-meta-label">Monthly Rent</span>
+          <span class="tn-meta-value">KES {{ tenancy.unit.monthly_rent|floatformat:"0" }}</span>
+        </div>
+      </div>
+      <div class="tn-card-actions">
+        <a href="{% url 'tenancy_update' tenancy.id %}" class="tn-action-btn">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        {% if tenancy.status == 'ACTIVE' %}
+          <button class="tn-action-btn tn-action-btn--danger" data-url="{% url 'tenancy_moved_out' tenancy.id %}">
+            <i class="fas fa-sign-out-alt"></i> Move Out
+          </button>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <i class="fas fa-building"></i>
+      <h3>No tenancies found</h3>
+      <p>Click "Assign Unit" to create a new tenancy.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Desktop Table View -->
+  <div class="tn-desktop-table">
+    <table class="tn-table">
+      <thead>
+        <tr>
+          <th>Tenant</th>
+          <th>Unit</th>
+          <th>Property</th>
+          <th>Move In</th>
+          <th>Move Out</th>
+          <th>Status</th>
+          <th>Monthly Rent</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tnTableBody">
+        {% for tenancy in tenancies %}
+        <tr data-status="{{ tenancy.status }}" data-search="{{ tenancy.tenant.name|lower }} {{ tenancy.unit.unit_number|lower }}">
+          <td>
+            <div class="avatar-row">
+              <div class="avatar">{{ tenancy.tenant.name|first|upper }}</div>
+              <span>{{ tenancy.tenant.name }}</span>
+            </div>
+          </td>
+          <td>{{ tenancy.unit.unit_number }}</td>
+          <td>{{ tenancy.unit.property.name }}</td>
+          <td>{{ tenancy.move_in_date|date:"d M Y" }}</td>
+          <td>{{ tenancy.move_out_date|date:"d M Y"|default:"—" }}</td>
+          <td>
+            {% if tenancy.status == 'ACTIVE' %}
+              <span class="badge badge-green">Active</span>
+            {% else %}
+              <span class="badge badge-gray">Moved Out</span>
+            {% endif %}
+          </td>
+          <td>KES {{ tenancy.unit.monthly_rent|floatformat:"0" }}</td>
+          <td>
+            <div class="tn-actions">
+              <a href="{% url 'tenancy_update' tenancy.id %}" class="tn-icon-btn" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              {% if tenancy.status == 'ACTIVE' %}
+                <button class="tn-icon-btn danger" data-url="{% url 'tenancy_moved_out' tenancy.id %}" title="Move Out">
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="empty-state" style="text-align:center;">No tenancies found. <a href="{% url 'tenancy_create' %}">Create one</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Hidden form for Move Out -->
+  <form id="moveOutForm" method="post" style="display:none;">
+    {% csrf_token %}
+  </form>
 
 </div>
+{% endblock %}
 
-<table class="table">
+{% block extra_js %}
+<script>
+  (function() {
+    // Search + Filter
+    const searchInput = document.getElementById('tnSearchInput');
+    const statusBtns = document.querySelectorAll('#tnStatusFilter .tn-filter-badge');
+    const mobileCards = document.querySelectorAll('#tnMobileCards .tn-card');
+    const tableRows = document.querySelectorAll('#tnTableBody tr');
+    const visibleSpan = document.getElementById('tnVisibleCount');
 
-    <thead>
+    let currentStatus = 'all';
+    let currentSearch = '';
 
-        <tr>
-            <th>Tenant</th>
-            <th>Unit</th>
-            <th>Move In</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
+    function filterItems() {
+      let visible = 0;
+      mobileCards.forEach(card => {
+        const statusMatch = currentStatus === 'all' || card.dataset.status === currentStatus;
+        const searchMatch = currentSearch === '' || card.dataset.search.includes(currentSearch);
+        card.style.display = (statusMatch && searchMatch) ? '' : 'none';
+        if (statusMatch && searchMatch) visible++;
+      });
+      tableRows.forEach(row => {
+        const statusMatch = currentStatus === 'all' || row.dataset.status === currentStatus;
+        const searchMatch = currentSearch === '' || row.dataset.search.includes(currentSearch);
+        row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+        if (statusMatch && searchMatch && row.cells.length > 1) visible++;
+      });
+      visibleSpan.innerText = visible;
+    }
 
-    </thead>
+    searchInput?.addEventListener('input', (e) => {
+      currentSearch = e.target.value.trim().toLowerCase();
+      filterItems();
+    });
 
-    <tbody>
+    statusBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        statusBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStatus = btn.dataset.status;
+        filterItems();
+      });
+    });
 
-        {% for tenancy in tenancies %}
-
-        <tr>
-
-            <td>{{ tenancy.tenant }}</td>
-
-            <td>{{ tenancy.unit }}</td>
-
-            <td>{{ tenancy.move_in_date }}</td>
-
-            <td>{{ tenancy.status }}</td>
-
-            <td>
-
-                <a href="{% url 'tenancy_update' tenancy.id %}">
-                    Edit
-                </a>
-
-                |
-
-                {% if tenancy.status == 'ACTIVE' %}
-
-                <a href="{% url 'tenancy_moved_out' tenancy.id %}">
-                    Move Out
-                </a>
-
-                {% endif %}
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
-
+    // Move Out: attach event listeners to all buttons with data-url
+    const moveOutForm = document.getElementById('moveOutForm');
+    document.querySelectorAll('[data-url]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = btn.getAttribute('data-url');
+        // Find tenancy info from closest parent (card or row)
+        let tenantName = '', unitNumber = '';
+        const card = btn.closest('.tn-card');
+        if (card) {
+          tenantName = card.querySelector('.tn-card-name')?.innerText || '';
+          unitNumber = card.querySelector('.tn-card-unit')?.innerText.split('·')[0].trim() || '';
+        } else {
+          const row = btn.closest('tr');
+          if (row) {
+            tenantName = row.querySelector('.avatar-row span')?.innerText || '';
+            unitNumber = row.cells[1]?.innerText || '';
+          }
+        }
+        if (confirm(`Move out ${tenantName} from ${unitNumber}?\nThis will mark the tenancy as completed and free up the unit.`)) {
+          moveOutForm.action = url;
+          moveOutForm.submit();
+        }
+      });
+    });
+  })();
+</script>
 {% endblock %}

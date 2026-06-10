@@ -5,23 +5,24 @@ from properties.models import Unit
 class TenantForm(forms.ModelForm):
     class Meta:
         model = Tenant
-        fields = ['full_name', 'phone_no', 'id_no', 'emergency_no', 'active']
+        fields = ['full_name', 'phone_no', 'id_no', 'emergency_no']
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_no': forms.TextInput(attrs={'class': 'form-control'}),
             'id_no': forms.TextInput(attrs={'class': 'form-control'}),
             'emergency_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),  
+            # 'active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),  
         }
         
 
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
-        fields = ['unit', 'full_name', 'deposit_amount', 'expected_movein_date', 'notes']
+        fields = ['unit', 'full_name','phone_no', 'deposit_amount', 'expected_movein_date', 'notes']
         widgets = {
             'unit': forms.Select(attrs={'class': 'form-control'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone_no': forms.TextInput(attrs={'class': 'form-control'}),
             'deposit_amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'expected_movein_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -42,6 +43,4 @@ class TenancyForm(forms.ModelForm):
 
         self.fields['unit'].queryset = Unit.objects.filter(
             active=True
-        ).exclude(
-            status=Unit.OCCUPIED
         )

@@ -1,27 +1,203 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tenancy Form | Rental Manager{% endblock %}
+{% block topbar_title %}Tenancy Form{% endblock %}
 
 {% block content %}
+<div class="tenancy-form-container">
 
-<div class="page-header" style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-    <a href="{% url 'tenancy_list' %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back to Assignments
-    </a>
-    <h2 style="margin:0;">Tenancy Form</h2>
+  <!-- Breadcrumb + Page Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>
+        <a href="{% url 'tenancy_list' %}">Assign Units</a>
+        <span class="breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>
+        <span class="breadcrumb-current">
+          {% if form.instance.pk %}Edit Tenancy{% else %}New Assignment{% endif %}
+        </span>
+      </div>
+      <h1>{% if form.instance.pk %}Edit Tenancy{% else %}Assign Unit to Tenant{% endif %}</h1>
+      <p>
+        {% if form.instance.pk %}
+          Update move‑in/out dates or change the status.
+        {% else %}
+          Select a tenant, a vacant or reserved unit, and set the move‑in date.
+        {% endif %}
+      </p>
+    </div>
+    <div class="page-header-actions">
+      <a href="{% url 'tenancy_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Cancel
+      </a>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <i class="fas fa-handshake"></i> Tenancy Details
+      </span>
+      {% if form.instance.pk %}
+        <span class="badge {% if form.instance.status == 'ACTIVE' %}badge-green{% else %}badge-gray{% endif %}">
+          {{ form.instance.get_status_display }}
+        </span>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Non‑field errors -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <!-- Two‑column layout for main fields -->
+        <div class="form-grid-2">
+          <!-- Unit -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.unit.id_for_label }}">
+              Unit <span>*</span>
+            </label>
+            {{ form.unit }}
+            {% if form.unit.errors %}
+              <div class="form-error">{{ form.unit.errors }}</div>
+            {% endif %}
+            <div class="form-hint">Select the rental unit</div>
+          </div>
+
+          <!-- Tenant -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.tenant.id_for_label }}">
+              Tenant <span>*</span>
+            </label>
+            {{ form.tenant }}
+            {% if form.tenant.errors %}
+              <div class="form-error">{{ form.tenant.errors }}</div>
+            {% endif %}
+            <div class="form-hint">Choose an existing tenant</div>
+          </div>
+
+          <!-- Move‑in date -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.move_in_date.id_for_label }}">
+              Move‑in Date <span>*</span>
+            </label>
+            {{ form.move_in_date }}
+            {% if form.move_in_date.errors %}
+              <div class="form-error">{{ form.move_in_date.errors }}</div>
+            {% endif %}
+            <div class="form-hint">When the tenant starts occupying</div>
+          </div>
+
+          <!-- Move‑out date (optional) -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.move_out_date.id_for_label }}">
+              Move‑out Date
+            </label>
+            {{ form.move_out_date }}
+            {% if form.move_out_date.errors %}
+              <div class="form-error">{{ form.move_out_date.errors }}</div>
+            {% endif %}
+            <div class="form-hint">Leave blank if still active</div>
+          </div>
+
+          <!-- Status (only shown when editing) -->
+          {% if form.instance.pk %}
+            <div class="form-group">
+              <label class="form-label" for="{{ form.status.id_for_label }}">
+                Status
+              </label>
+              {{ form.status }}
+              {% if form.status.errors %}
+                <div class="form-error">{{ form.status.errors }}</div>
+              {% endif %}
+              <div class="form-hint">Active = tenant currently in unit</div>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Form actions -->
+        <div class="form-actions" style="display: flex; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Tenancy
+          </button>
+          <a href="{% url 'tenancy_list' %}" class="btn btn-secondary">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Help info (optional) -->
+  <div class="card" style="margin-top: 16px; background: var(--blue-bg); border-color: var(--blue-border);">
+    <div class="card-body" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <i class="fas fa-info-circle" style="font-size: 20px; color: var(--blue);"></i>
+      <div style="flex: 1;">
+        <strong>Important notes</strong><br>
+        • A unit can have only <strong>one active tenancy</strong> at a time.<br>
+        • Move‑out date cannot be before move‑in date.<br>
+        • Changing status to "Moved out" will automatically vacate the unit.
+      </div>
+    </div>
+  </div>
+
 </div>
+{% endblock %}
 
-<form method="post">
-
-    {% csrf_token %}
-
-    {{ form.as_p }}
-
-    <button type="submit"
-            class="btn btn-primary">
-
-        Save
-
-    </button>
-
-</form>
-
+{% block extra_css %}
+<style>
+  /* Style Django form widgets to match our design system */
+  .form-group select,
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    font-family: inherit;
+    background: var(--surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-group select:focus,
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(26,107,74,0.12);
+  }
+  .form-error {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .form-hint {
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: var(--txt-muted);
+  }
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 640px) {
+    .form-grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  /* For date inputs – make them consistent */
+  input[type="date"] {
+    font-family: inherit;
+  }
+</style>
 {% endblock %}

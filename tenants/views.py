@@ -1,12 +1,14 @@
 from django.db.models import Q
 from django.utils import timezone
+from django.db.models import Sum
+from datetime import date
 from django.contrib.auth.decorators import login_required
 
 from django.shortcuts import get_object_or_404, render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Tenancy, Tenant, Reservation
 from .forms import TenantForm, ReservationForm, TenancyForm
-from properties.models import Property
+from properties.models import Property, Unit
 
 # Create your views here.
 @login_required
@@ -81,8 +83,21 @@ def tenant_detail(request, pk):
 
 @login_required
 def reservation_list(request):
-    reservations = Reservation.objects.all()
-    return render(request, 'tenants/reservation_list.html', {'reservations': reservations})
+    now = date.today()
+    context = {
+        'total_reservations': Reservation.objects.count(),
+        'pending_count': Reservation.objects.filter(status='PENDING').count(),
+        'total_deposits': Reservation.objects.aggregate(Sum('deposit_amount'))['deposit_amount__sum'] or 0,
+        'movein_this_month': Reservation.objects.filter(
+            expected_movein_date__year=now.year,
+            expected_movein_date__month=now.month
+        ).count(),
+        'pending_reservations': Reservation.objects.filter(status='PENDING'),
+        'converted_reservations': Reservation.objects.filter(status='CONVERTED'),
+        'cancelled_reservations': Reservation.objects.filter(status='CANCELLED'),
+        'all_reservations_sorted': Reservation.objects.order_by('-expected_movein_date'),
+    }
+    return render(request, 'tenants/reservation_list.html', context)
 
 @login_required
 def reservation_create(request):
@@ -110,20 +125,70 @@ def reservation_update(request, pk):
     return render(request, 'tenants/reservation_form.html', {'form': form})
 
 @login_required
+def reservation_convert(request, pk):
+    reservation = get_object_or_404(Reservation, pk=pk, status=Reservation.PENDING)
+    
+    if request.method == 'POST':
+        # 1. Create or get existing tenant (using phone_no as unique identifier)
+        tenant= Tenant.objects.get_or_create(
+            phone_no=reservation.phone_no,
+            defaults={
+                'full_name': reservation.full_name,
+                'id_no': reservation.id_no or '',
+            }
+        )
+        # tenant.save()
+        
+        # 2. Create the active tenancy 
+        tenancy = Tenancy.objects.get_or_create(
+            tenant=tenant,
+            unit=reservation.unit,
+            move_in_date=reservation.expected_movein_date,
+            status=Tenancy.ACTIVE
+        )
+        
+        # 3. Update reservation without triggering full_clean() or save()
+        #    Use queryset update to bypass model validation
+        Reservation.objects.filter(pk=reservation.pk).update(
+            status=Reservation.CONVERTED,
+            tenancy=tenancy
+        )
+        reservation.unit.status = Unit.OCCUPIED
+        reservation.unit.save(update_fields=['status'])
+        
+        # (Optional) If you want to revert unit status to VACANT in case of any issue, but everything is fine now.
+        messages.success(request, f'Reservation converted to tenancy for {tenant.full_name}.')
+        return redirect('tenancy_list')  # or to 'tenant_detail' or 'tenancy_detail'
+    
+    # GET request – show confirmation page
+    return render(request, 'tenants/reservation_convert_confirm.html', {'reservation': reservation})
+
+@login_required
 def tenancy_create(request):
     if request.method == 'POST':
         form =  TenancyForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'Tenancy created successfully.')
-            return redirect('tenant_list')
+            return redirect('tenancy_list')
     else:
         return render(request, 'tenants/tenancy_form.html', {'form': TenancyForm()})
 
 @login_required    
 def tenancy_list(request):
     tenancies = Tenancy.objects.select_related('tenant', 'unit', 'unit__parent_property').all()
-    return render(request, 'tenants/tenancy_list.html', {'tenancies': tenancies})
+    active_count = tenancies.filter(status=Tenancy.ACTIVE).count()
+    moved_out_count = tenancies.filter(status=Tenancy.MOVED_OUT).count()
+    total_units = Unit.objects.count()
+    occupied_units = Tenancy.objects.filter(status=Tenancy.ACTIVE).values('unit').distinct().count()
+    occupancy_rate = round((occupied_units / total_units)*100 if total_units else 0)
+    context = {
+        'tenancies': tenancies,
+        'active_count': active_count,
+        'moved_out_count': moved_out_count,
+        'occupancy_rate': occupancy_rate,
+    }
+    return render(request, 'tenants/tenancy_list.html', context)
 
 @login_required    
 def tenancy_update(request, pk):
@@ -133,7 +198,7 @@ def tenancy_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Tenancy updated successfully.')
-            return redirect('tenant_list')
+            return redirect('tenancy_list')
     else:
         form = TenancyForm(instance=tenancy)
     return render(request, 'tenants/tenancy_form.html', {'form': form})

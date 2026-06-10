@@ -1,66 +1,320 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reservations | Rental Manager{% endblock %}
+{% block topbar_title %}Reservations{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Reservation-specific styles (prefix: res-) */
+  .res-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .res-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .res-stat-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--amber-bg);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--amber);
+  }
+  .res-stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .res-stat-label {
+    font-size: 12px;
+    color: var(--txt-muted);
+  }
+
+  /* Board layout (desktop) */
+  .res-board {
+    display: none;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  @media (min-width: 800px) {
+    .res-board { display: flex; }
+    .res-mobile-list { display: none; }
+  }
+  .res-column {
+    flex: 1;
+    min-width: 280px;
+    background: var(--bg-2);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+  }
+  .res-column-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .res-column-header.pending { color: var(--amber); border-bottom-color: var(--amber); }
+  .res-column-header.converted { color: var(--green); border-bottom-color: var(--green); }
+  .res-column-header.cancelled { color: var(--red); border-bottom-color: var(--red); }
+  .res-column-count {
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+  }
+
+  .res-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: 0.1s;
+  }
+  .res-card:hover { box-shadow: var(--shadow-md); }
+  .res-card-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .res-card-unit {
+    font-size: 12px;
+    color: var(--txt-muted);
+    margin-bottom: 10px;
+  }
+  .res-card-detail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .res-deposit {
+    font-weight: 700;
+    color: var(--green);
+  }
+  .res-date {
+    color: var(--txt-secondary);
+  }
+  .res-card-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Mobile timeline cards */
+  .res-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .res-mobile-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .res-mobile-status {
+    height: 4px;
+  }
+  .res-mobile-status.pending { background: var(--amber); }
+  .res-mobile-status.converted { background: var(--green); }
+  .res-mobile-status.cancelled { background: var(--red); }
+  .res-mobile-body {
+    padding: 16px;
+  }
+  .res-mobile-name {
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .res-mobile-unit {
+    font-size: 13px;
+    color: var(--txt-muted);
+    margin-bottom: 12px;
+  }
+  .res-mobile-meta {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+  }
+  .res-mobile-deposit {
+    background: var(--green-bg);
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--green);
+  }
+  .res-mobile-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="res-container">
 
-<div class="page-header">
+  <!-- Header with stats -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>
+        <span class="breadcrumb-current">Reservations</span>
+      </div>
+      <h1>Reservations</h1>
+      <p>Pending deposits and upcoming move‑ins</p>
+    </div>
+    <div class="page-header-actions">
+      <a href="{% url 'reservation_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Reservation
+      </a>
+    </div>
+  </div>
 
-    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; width:100%;">
-        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
-            <h2 style="margin:0;">Reservations</h2>
+  <!-- Summary stats -->
+  <div class="res-stats">
+    <div class="res-stat-card">
+      <div class="res-stat-icon"><i class="fas fa-calendar-alt"></i></div>
+      <div>
+        <div class="res-stat-number">{{ total_reservations }}</div>
+        <div class="res-stat-label">Total Reservations</div>
+      </div>
+    </div>
+    <div class="res-stat-card">
+      <div class="res-stat-icon"><i class="fas fa-hourglass-half"></i></div>
+      <div>
+        <div class="res-stat-number">{{ pending_count }}</div>
+        <div class="res-stat-label">Pending</div>
+      </div>
+    </div>
+    <div class="res-stat-card">
+      <div class="res-stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
+      <div>
+        <div class="res-stat-number">KES {{ total_deposits|floatformat:"0" }}</div>
+        <div class="res-stat-label">Total Deposits</div>
+      </div>
+    </div>
+    <div class="res-stat-card">
+      <div class="res-stat-icon"><i class="fas fa-calendar-week"></i></div>
+      <div>
+        <div class="res-stat-number">{{ movein_this_month }}</div>
+        <div class="res-stat-label">Move‑ins this month</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop: Kanban board by status -->
+  <div class="res-board">
+    <div class="res-column">
+      <div class="res-column-header pending">
+        <span><i class="fas fa-clock"></i> Pending</span>
+        <span class="res-column-count">{{ pending_reservations|length }}</span>
+      </div>
+      {% for r in pending_reservations %}
+      <div class="res-card">
+        <div class="res-card-name">{{ r.full_name }}</div>
+        <div class="res-card-unit">{{ r.unit.unit_number }} · {{ r.unit.property.name }}</div>
+        <div class="res-card-detail">
+          <span>Deposit:</span>
+          <span class="res-deposit">KES {{ r.deposit_amount|floatformat:"0" }}</span>
         </div>
-        <a href="{% url 'reservation_create' %}"
-           class="btn btn-primary">
-
-            New Reservation
-
-        </a>
+        <div class="res-card-detail">
+          <span>Expected move‑in:</span>
+          <span class="res-date">{{ r.expected_movein_date|date:"d M Y" }}</span>
+        </div>
+        <div class="res-card-actions">
+          <a href="{% url 'reservation_convert' r.id %}" class="btn btn-sm btn-primary">Convert</a>
+          <a href="{% url 'reservation_update' r.id %}" class="btn btn-sm btn-secondary">Edit</a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-state" style="padding:20px;">No pending reservations</div>
+      {% endfor %}
     </div>
 
+    <div class="res-column">
+      <div class="res-column-header converted">
+        <span><i class="fas fa-check-circle"></i> Converted</span>
+        <span class="res-column-count">{{ converted_reservations|length }}</span>
+      </div>
+      {% for r in converted_reservations %}
+      <div class="res-card">
+        <div class="res-card-name">{{ r.full_name }}</div>
+        <div class="res-card-unit">{{ r.unit.unit_number }}</div>
+        <div class="res-card-detail">
+          <span>Moved in:</span>
+          <span>{{ r.actual_movein_date|date:"d M Y"|default:"—" }}</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-state" style="padding:20px;">No converted reservations</div>
+      {% endfor %}
+    </div>
+
+    <div class="res-column">
+      <div class="res-column-header cancelled">
+        <span><i class="fas fa-times-circle"></i> Cancelled</span>
+        <span class="res-column-count">{{ cancelled_reservations|length }}</span>
+      </div>
+      {% for r in cancelled_reservations %}
+      <div class="res-card">
+        <div class="res-card-name">{{ r.full_name }}</div>
+        <div class="res-card-unit">{{ r.unit.unit_number }}</div>
+        <div class="res-card-detail">
+          <span>Cancelled on:</span>
+          <span>{{ r.cancelled_date|date:"d M Y"|default:"—" }}</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-state" style="padding:20px;">No cancelled reservations</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Mobile: timeline cards (all reservations, sorted by expected date) -->
+  <div class="res-mobile-list">
+    {% for r in all_reservations_sorted %}
+    <div class="res-mobile-card">
+      <div class="res-mobile-status {% if r.status == 'PENDING' %}pending{% elif r.status == 'CONVERTED' %}converted{% else %}cancelled{% endif %}"></div>
+      <div class="res-mobile-body">
+        <div class="res-mobile-name">{{ r.full_name }}</div>
+        <div class="res-mobile-unit">{{ r.unit.unit_number }} · {{ r.unit.property.name }}</div>
+        <div class="res-mobile-meta">
+          <span class="res-mobile-deposit"><i class="fas fa-money-bill-wave"></i> KES {{ r.deposit_amount|floatformat:"0" }}</span>
+          <span><i class="fas fa-calendar-alt"></i> {{ r.expected_movein_date|date:"d M Y" }}</span>
+        </div>
+        <div class="res-mobile-actions">
+          {% if r.status == 'PENDING' %}
+            <a href="{% url 'reservation_convert' r.id %}" class="btn btn-sm btn-primary" style="flex:1;">Convert to Tenant</a>
+          {% endif %}
+          <a href="{% url 'reservation_update' r.id %}" class="btn btn-sm btn-secondary" style="flex:1;">Edit</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">No reservations yet. <a href="{% url 'reservation_create' %}">Create one</a></div>
+    {% endfor %}
+  </div>
+
 </div>
-
-<table class="table">
-
-    <thead>
-
-        <tr>
-            <th>Name</th>
-            <th>Unit</th>
-            <th>Deposit</th>
-            <th>Expected Move In</th>
-            <th>Status</th>
-        </tr>
-
-    </thead>
-
-    <tbody>
-
-        {% for reservation in reservations %}
-
-        <tr>
-
-            <td>{{ reservation.full_name }}</td>
-
-            <td>{{ reservation.unit }}</td>
-
-            <td>{{ reservation.deposit_amount }}</td>
-
-            <td>
-                {{ reservation.expected_movein_date }}
-            </td>
-
-            <td>
-                {{ reservation.status }}
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
-
 {% endblock %}
