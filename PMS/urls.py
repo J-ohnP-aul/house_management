@@ -29,7 +29,8 @@ urlpatterns = [
     path('maintenance/', include('maintanance.urls')),
     path('expenses/', include('expenses.urls')),
     path('admin/', admin.site.urls),
-    
+    path("rent/", include("rent.urls")),
+    path("reports/", include(("reports.urls", "reports"), namespace="reports")),
     path('', RedirectView.as_view(url='login/', permanent=False)), 
 ]
 

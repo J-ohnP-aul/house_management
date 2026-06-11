@@ -1,0 +1,47 @@
+{% extends 'reports/base_report.html' %}
+
+{% block report_content %}
+<div class="row gy-3 mb-4">
+  <div class="col-12 col-md-6">
+    <div class="card report-summary-card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-uppercase text-muted mb-2">Active Tenants</h6>
+        <p class="display-6 mb-0">{{ active_tenants|length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table report-table mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Tenant Name</th>
+            <th>Phone</th>
+            <th>Unit</th>
+            <th>Property</th>
+            <th>Move In Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>{{ row.tenant_name }}</td>
+            <td>{{ row.phone }}</td>
+            <td>{{ row.unit }}</td>
+            <td>{{ row.property }}</td>
+            <td>{{ row.move_in_date }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center py-4">No active tenants found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% include 'reports/pagination.html' %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'reports/base_report.html' %}
+
+{% block report_content %}
+<div class="mb-4">
+  <div class="row gy-3">
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card report-summary-card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted mb-2">Total Collected</h6>
+          <p class="display-6 mb-0">KES {{ summary.total_payments|default:0 }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card report-summary-card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted mb-2">Number of Payments</h6>
+          <p class="display-6 mb-0">{{ summary.number_of_payments|default:0 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table report-table mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Month</th>
+            <th>Total Rent Collected</th>
+            <th>Total Payments</th>
+            <th>Number of Payments</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>{{ row.month }}</td>
+            <td>KES {{ row.total_rent_collected }}</td>
+            <td>KES {{ row.total_payments }}</td>
+            <td>{{ row.number_of_payments }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center py-4">No records found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% include 'reports/pagination.html' %}
+{% endblock %}

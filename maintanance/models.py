@@ -1,5 +1,5 @@
 from django.db import models
-from properties.models import Unit, Property
+from properties.models import Unit
 
 # Create your models here.
 class Maintenance(models.Model):

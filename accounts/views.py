@@ -15,7 +15,7 @@ from .models import User
 from .forms import CustomUserCreationForm
 from properties.models import Property, Unit
 from tenants.models import Tenant, Tenancy
-from rent.models import Payment
+from rent.models import Payment, RentCycle
 from maintanance.models import Maintenance
 
 
@@ -52,6 +52,7 @@ def dashboard(request):
     ).aggregate(total=Sum('cost'))['total'] or 0
 
     net_profit = monthly_income - monthly_expenses
+    rent_cycle_count = RentCycle.objects.count()
 
     maintenance_qs = Maintenance.objects.all()
     pending_maintenance = maintenance_qs.filter(status=Maintenance.PENDING).order_by('-request_date')[:5]
@@ -128,6 +129,7 @@ def dashboard(request):
         'pending_maintenance': pending_maintenance,
         'pending_maintenance_count': pending_maintenance_count,
         'recent_properties': recent_properties,
+        'rent_cycle_count': rent_cycle_count,
         'overdue_tenants': overdue_tenants,
         'chart_labels_json': json.dumps(chart_labels),
         'chart_income_json': json.dumps(chart_income),

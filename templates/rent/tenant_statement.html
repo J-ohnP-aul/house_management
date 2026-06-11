@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Statement for {{ tenancy.tenant.full_name }} - {{ tenancy.unit }}</h2>
+<p>Monthly Rent: KES {{ tenancy.monthly_rent }}</p>
+<p>Current Balance: <strong>KES {{ balance }}</strong></p>
+
+<table border="1">
+    <thead>
+        <tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance (after entry)</th></tr>
+    </thead>
+    <tbody>
+        {% with running_balance=0 %}
+            {% for entry in ledger_entries %}
+                <tr>
+                    <td>{{ entry.entry_date }}</td>
+                    <td>{{ entry.description }}</td>
+                    <td>{% if entry.debit %}KES {{ entry.debit }}{% endif %}</td>
+                    <td>{% if entry.credit %}KES {{ entry.credit }}{% endif %}</td>
+                    <td>{% with new_balance=entry.debit|add:running_balance|add:entry.credit %}{% endwith %}</td>
+                </tr>
+            {% endfor %}
+        {% endwith %}
+        <tr style="font-weight:bold">
+            <td colspan="4">Final Balance</td>
+            <td>KES {{ balance }}</td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}

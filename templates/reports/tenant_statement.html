@@ -1,0 +1,56 @@
+{% extends 'reports/base_report.html' %}
+
+{% block report_content %}
+<div class="mb-4">
+  <div class="row gy-3">
+    <div class="col-12 col-md-6">
+      <div class="card report-summary-card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted mb-2">Opening Balance</h6>
+          <p class="display-6 mb-0">KES {{ opening_balance|default:0 }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card report-summary-card shadow-sm">
+        <div class="card-body">
+          <h6 class="text-uppercase text-muted mb-2">Closing Balance</h6>
+          <p class="display-6 mb-0">KES {{ closing_balance|default:0 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table report-table mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Debit</th>
+            <th>Credit</th>
+            <th>Running Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>{{ row.date }}</td>
+            <td>{{ row.description }}</td>
+            <td>{% if row.debit %}KES {{ row.debit }}{% else %}-{% endif %}</td>
+            <td>{% if row.credit %}KES {{ row.credit }}{% else %}-{% endif %}</td>
+            <td>KES {{ row.running_balance }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center py-4">No ledger entries found for this tenant.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% include 'reports/pagination.html' %}
+{% endblock %}

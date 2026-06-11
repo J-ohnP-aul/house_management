@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Rent Cycles</h2>
+<ul>
+    {% for cycle in cycles %}
+        <li>{{ cycle }} ({{ cycle.status }})</li>
+    {% empty %}
+        <li>No cycles generated yet.</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'rent:generate' %}">Generate new cycle</a>
+{% endblock %}

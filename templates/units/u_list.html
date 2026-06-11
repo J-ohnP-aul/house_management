@@ -1,5 +1,5 @@
-
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Units | Rental Manager{% endblock %}
 {% block topbar_title %}Units{% endblock %}
@@ -11,14 +11,13 @@
         <h1>Units</h1>
         <p>Manage all rental units across your properties</p>
     </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-
+    <div class="page-header-actions" style="flex-wrap: wrap; gap: 10px;">
         <!-- Status filter -->
-        <div style="display:flex; gap:6px;">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
             <button class="btn btn-secondary btn-sm filter-btn active" data-filter="ALL" onclick="filterUnits(this, 'ALL')">All</button>
-            <button class="btn btn-secondary btn-sm filter-btn" data-filter="OCCUPIED" onclick="filterUnits(this, 'OCCUPIED')" style="color:var(--green);">Occupied</button>
-            <button class="btn btn-secondary btn-sm filter-btn" data-filter="RESERVED" onclick="filterUnits(this, 'RESERVED')" style="color:var(--amber);">Reserved</button>
-            <button class="btn btn-secondary btn-sm filter-btn" data-filter="VACANT" onclick="filterUnits(this, 'VACANT')" style="color:var(--txt-muted);">Vacant</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-filter="OCCUPIED" onclick="filterUnits(this, 'OCCUPIED')">Occupied</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-filter="RESERVED" onclick="filterUnits(this, 'RESERVED')">Reserved</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-filter="VACANT" onclick="filterUnits(this, 'VACANT')">Vacant</button>
         </div>
 
         <a href="{% url 'unit_create' %}" class="btn btn-primary">
@@ -28,7 +27,73 @@
 </div>
 
 {% if units %}
-<div class="card" style="padding:0; overflow:hidden;">
+
+<!-- Mobile Card Layout (visible < 640px) -->
+<div class="tl-mobile-cards" id="unitMobileCards">
+    {% for unit in units %}
+    <div class="unit-card tl-card" data-status="{{ unit.status }}" style="margin-bottom: 0;">
+        <div class="tl-card-top">
+            <div class="avatar tl-avatar">{{ unit.unit_number|first|upper }}</div>
+            <div class="tl-card-info">
+                <div class="tl-card-name">{{ unit.unit_number }}</div>
+                <div class="tl-card-id">{{ unit.parent_property.name|truncatechars:25 }}</div>
+            </div>
+            <div>
+                {% if unit.status == 'OCCUPIED' %}
+                    <span class="badge badge-green">Occupied</span>
+                {% elif unit.status == 'RESERVED' %}
+                    <span class="badge badge-amber">Reserved</span>
+                {% else %}
+                    <span class="badge badge-gray">Vacant</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="tl-card-meta">
+            <div class="tl-meta-item">
+                <span class="tl-meta-label">Rent</span>
+                <span class="tl-meta-value">KES {{ unit.monthly_rent|floatformat:"0" }}</span>
+            </div>
+            <div class="tl-meta-item">
+                <span class="tl-meta-label">Tenant</span>
+                <span class="tl-meta-value">
+                    {% if unit.current_tenant %}
+                        {{ unit.current_tenant.full_name }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </div>
+            <div class="tl-meta-item">
+                <span class="tl-meta-label">Since</span>
+                <span class="tl-meta-value">
+                    {% if unit.current_tenant %}
+                        {{ unit.current_tenant.move_in_date|date:"M d, Y" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </div>
+            {% if unit.description %}
+            <div class="tl-meta-item">
+                <span class="tl-meta-label">Description</span>
+                <span class="tl-meta-value">{{ unit.description|truncatechars:30 }}</span>
+            </div>
+            {% endif %}
+        </div>
+        <div class="tl-card-actions">
+            <a href="{% url 'unit_detail' unit.id %}" class="tl-action-btn tl-action-btn--primary">
+                <i class="fas fa-eye"></i> View
+            </a>
+            <a href="{% url 'unit_edit' unit.id %}" class="tl-action-btn">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Desktop Table Layout (visible ≥ 640px) -->
+<div class="tl-desktop-table">
     <div class="table-wrap">
         <table>
             <thead>
@@ -50,8 +115,8 @@
                         {% if unit.description %}<div style="font-size:11.5px; color:var(--txt-muted);">{{ unit.description|truncatechars:30 }}</div>{% endif %}
                     </td>
                     <td>
-                        <a  style="color:var(--brand); text-decoration:none; font-size:13px;">
-                            {{ unit.parent_property }}
+                        <a href="{% url 'property_detail' unit.parent_property.id %}" style="color:var(--brand); text-decoration:none; font-size:13px;">
+                            {{ unit.parent_property.name }}
                         </a>
                     </td>
                     <td>
@@ -83,6 +148,7 @@
                     </td>
                     <td style="text-align:right; white-space:nowrap;">
                         <a href="{% url 'unit_detail' unit.id %}" class="btn btn-secondary btn-sm">View</a>
+                        <a href="{% url 'unit_edit' unit.id %}" class="btn btn-secondary btn-sm" style="margin-left: 4px;">Edit</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -90,6 +156,7 @@
         </table>
     </div>
 </div>
+
 {% else %}
 <div class="card">
     <div class="empty-state">
@@ -108,21 +175,60 @@
 {% block extra_js %}
 <script>
 function filterUnits(btn, status) {
+    // Update active button style
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.querySelectorAll('.unit-row').forEach(row => {
+
+    // Filter desktop table rows
+    document.querySelectorAll('#unitTable .unit-row').forEach(row => {
         row.style.display = (status === 'ALL' || row.dataset.status === status) ? '' : 'none';
+    });
+
+    // Filter mobile cards
+    document.querySelectorAll('#unitMobileCards .unit-card').forEach(card => {
+        card.style.display = (status === 'ALL' || card.dataset.status === status) ? '' : 'none';
     });
 }
 </script>
-
 {% endblock %}
+
 {% block extra_css %}
 <style>
+    /* Style for filter buttons – active state uses brand color */
     .filter-btn.active { 
         background: var(--brand); 
         color: white !important; 
         border-color: var(--brand); 
+    }
+    /* Make sure filter buttons have the correct base colors */
+    .filter-btn[data-filter="OCCUPIED"]:not(.active) { color: var(--green); }
+    .filter-btn[data-filter="RESERVED"]:not(.active) { color: var(--amber); }
+    .filter-btn[data-filter="VACANT"]:not(.active) { color: var(--txt-muted); }
+
+    /* Ensure mobile cards use the same spacing as tenant list */
+    .unit-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        margin-bottom: 12px;
+        background: var(--surface);
+    }
+    .unit-card:last-child { margin-bottom: 0; }
+    .unit-card .tl-card-top {
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+    }
+    .unit-card .tl-card-meta {
+        padding: 12px 14px;
+    }
+    .unit-card .tl-card-actions {
+        padding: 12px 14px;
+        border-top: 1px solid var(--border);
+    }
+    /* Fix avatar size */
+    .tl-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
     }
 </style>
 {% endblock %}
