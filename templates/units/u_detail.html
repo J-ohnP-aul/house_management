@@ -1,52 +1,143 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Unit Details | Rental Manager{% endblock %}
-{% block topbar_title %}Unit Details{% endblock %}
+{% block title %}Unit {{ unit.unit_number }} | Rental Manager{% endblock %}
+{% block topbar_title %}Unit {{ unit.unit_number }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <a href="{% url 'unit_list' %}" class="btn btn-secondary" style="margin-bottom:18px; display:inline-flex; align-items:center; gap:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Units
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Unit {{ unit.unit_number }}</h1>
+        <p>{{ unit.parent_property.name }}</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'unit_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+            <span class="btn-text">Back to Units</span>
         </a>
-        <h2 style="margin-top:0;">Unit {{ unit.unit_number }}</h2>
-        <p style="color:var(--txt-muted); margin-bottom:1.5rem;">{{ unit.description|default:"No description provided." }}</p>
+    </div>
+</div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div>
-                <h4 style="font-weight:600; margin-bottom:0.5rem;">Property</h4>
-                <a href="{% url 'property_detail' unit.parent_property.id %}" style="color:var(--brand); text-decoration:none; font-size:13px;">
-                    {{ unit.parent_property.name }}
-                </a>
-            </div>
-            <div>
-                <h4 style="font-weight:600; margin-bottom:0.5rem;">Monthly Rent</h4>
-                <span style="font-family:'DM Mono', monospace; font-size:13px; font-weight:500;">
-                    KES {{ unit.monthly_rent|floatformat:"0" }}
-                </span>
-            </div>
-            <!-- Additional details can be added here -->
+<div class="db-row--two" style="margin-bottom: 20px;">
+    <!-- Unit Information Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-door-open" aria-hidden="true"></i>
+                Unit Information
+            </span>
         </div>
-
-        <div style="margin-top:20px;">
-            {% if unit.current_tenant %}
-                <h4 style="font-weight:600; margin-bottom:0.5rem;">Current Tenant</h4>
-                <p>{{ unit.current_tenant }}</p>
-                <p style="color:var(--txt-muted); font-size:13px;">Move-in Date: {{ unit.moveindate }}</p>
-                <p style="color:var(--txt-muted); font-size:13px;">monthlypayment Date: {{ unit.moveindate }}</p>
-                <p style="color:rgb(208, 49, 49); font-size:13px;">Remaining days to Pay: {{ unit.days_until_rent_due }}</p>
-
-            {% else %}
-                <h4 style="font-weight:600; margin-bottom:0.5rem;">Current Tenant</h4>
-                <p>Vacant</p>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Property</div>
+                    <div class="detail-value" style="font-size: 14px; font-weight: 500;">
+                        <a href="{% url 'property_detail' unit.parent_property.id %}" style="color: var(--brand); text-decoration: none;">
+                            {{ unit.parent_property.name }}
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Rent</div>
+                    <div class="detail-value" style="font-size: 14px; font-weight: 500;">KES {{ unit.monthly_rent|floatformat:"0" }}</div>
+                </div>
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Status</div>
+                    <div class="detail-value">
+                        <span class="badge 
+                            {% if unit.status == 'Occupied' %}badge-green
+                            {% elif unit.status == 'Reserved' %}badge-amber
+                            {% else %}badge-gray{% endif %}">
+                            {{ unit.status }}
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Unit Number</div>
+                    <div class="detail-value" style="font-size: 14px; font-weight: 500;">{{ unit.unit_number }}</div>
+                </div>
+                {% if unit.bedrooms %}
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Bedrooms</div>
+                    <div class="detail-value">{{ unit.bedrooms }}</div>
+                </div>
+                {% endif %}
+                {% if unit.bathrooms %}
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Bathrooms</div>
+                    <div class="detail-value">{{ unit.bathrooms }}</div>
+                </div>
+                {% endif %}
+                {% if unit.size_sqm %}
+                <div>
+                    <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Size</div>
+                    <div class="detail-value">{{ unit.size_sqm }} sqm</div>
+                </div>
+                {% endif %}
+            </div>
+            {% if unit.description %}
+            <div style="margin-top: 16px;">
+                <div class="detail-label" style="font-size: 11px; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.05em;">Description</div>
+                <div class="detail-value" style="font-size: 13px;">{{ unit.description }}</div>
+            </div>
             {% endif %}
         </div>
+    </div>
 
-        <!-- Action buttons -->
-        <div style="margin-top:30px; display:flex; gap:10px;">
-            <a href="#" class="btn btn-primary">Edit Unit</a>
-            <!-- Additional actions like "View Lease", "Add Maintenance Request" can be added here -->
+    <!-- Current Tenant Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-user" aria-hidden="true"></i>
+                Current Tenant
+            </span>
+        </div>
+        <div class="card-body">
+            {% if unit.current_tenant %}
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div class="avatar" style="width: 48px; height: 48px; font-size: 18px;">
+                        {{ unit.current_tenant|first|upper }}
+                    </div>
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 600; margin: 0;">{{ unit.current_tenant }}</h3>
+                        <p style="color: var(--txt-muted); font-size: 12px; margin: 2px 0 0;">Move-in: {{ unit.moveindate|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+                    <div>
+                        <span style="color: var(--txt-muted);">Phone:</span> 
+                        <strong>{{ unit.tenant_phone|default:"—" }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--txt-muted);">Rent Due Day:</span> 
+                        <strong>{{ unit.moveindate.day }}</strong>
+                    </div>
+                </div>
+                {% if unit.days_until_rent_due %}
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--txt-muted);">Days until rent due:</span>
+                        <strong class="{% if unit.days_until_rent_due <= 0 %}text-red{% else %}text-green{% endif %}">
+                            {{ unit.days_until_rent_due }} days
+                        </strong>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state" style="padding: 24px 12px;">
+                    <i class="fas fa-user-slash" style="font-size: 28px; opacity: 0.5;"></i>
+                    <h3 style="font-size: 14px; margin-top: 8px;">No Current Tenant</h3>
+                    <p style="font-size: 12px;">This unit is {{ unit.status|lower }}.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
+</div>
+
+<!-- Action Buttons -->
+<div style="display: flex; gap: 12px; margin-top: 8px;">
+    <a href="{% url 'unit_edit' unit.id %}" class="btn btn-primary">
+        <i class="fas fa-edit"></i> Edit Unit
+    </a>
 </div>
 {% endblock %}

@@ -123,5 +123,4 @@ def unit_edit(request, pk):
     return render(request, 'units/unit_form.html', {'form': form})
 def unit_detail(request, id):
     unit = get_object_or_404(Unit, id=id)
-    # tenant = 
     return render(request, 'units/u_detail.html', {'unit':unit})
