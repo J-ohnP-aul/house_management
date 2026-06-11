@@ -38,6 +38,9 @@
             <a href="{% url 'tenant_update' tenant.id %}" class="btn btn-secondary">
                 <i class="fas fa-edit"></i> Edit
             </a>
+             <a href="{% url 'tenant_history' tenant.id %}" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Tenant_history
+            </a>
             {% if not current_tenancy %}
             <a href="{% url 'tenancy_create' %}?tenant={{ tenant.id }}" class="btn btn-primary">
                 <i class="fas fa-handshake"></i> Assign Unit

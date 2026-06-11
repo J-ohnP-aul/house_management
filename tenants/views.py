@@ -205,5 +205,5 @@ def tenancy_moved_out(request, pk):
 @login_required
 def tenant_history(request, pk):
     tenant = get_object_or_404(Tenant, pk=pk)
-    tenancies = tenant.tenancies.select_related('unit', 'unit__property').order_by('-move_in_date')
+    tenancies = tenant.tenancies.select_related('unit', 'unit__parent_property').order_by('-move_in_date')
     return render(request, 'tenants/tenant_history.html', {'tenant': tenant, 'tenancies': tenancies})

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Tenant History{% endblock %}
+{% block topbar_title %}Tenant History{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>{{ tenant.full_name }}</h1>
+        <p>Occupancy history and tenancy records.</p>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+        <a href="{% url 'tenant_detail' tenant.id %}"
+           class="btn btn-secondary">
+            <i class="fas fa-user"></i>
+            Tenant Profile
+        </a>
+    </div>
+</div>
+
+<!-- Tenant Summary -->
+
+<div class="stat-grid">
+
+    <div class="stat-card">
+        <div class="stat-value">
+            {{ tenancies.count }}
+        </div>
+        <div class="stat-label">
+            Total Tenancies
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-value">
+            {% if tenant.is_active %}
+                Active
+            {% else %}
+                Inactive
+            {% endif %}
+        </div>
+        <div class="stat-label">
+            Current Status
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-value">
+            {{ tenant.phone_no }}
+        </div>
+        <div class="stat-label">
+            Phone Number
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-value">
+            {{ tenant.id_no }}
+        </div>
+        <div class="stat-label">
+            ID Number
+        </div>
+    </div>
+
+</div>
+
+<!-- Occupancy History -->
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-history"
+               style="margin-right:7px; color:var(--brand);"></i>
+            Occupancy History
+        </span>
+    </div>
+
+    <div class="card-body" style="padding:0;">
+
+        {% if tenancies %}
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Unit</th>
+                    <th>Move In</th>
+                    <th>Move Out</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for tenancy in tenancies %}
+
+                <tr>
+
+                    <td>
+                        {{ tenancy.unit.parent_property }}
+                    </td>
+
+                    <td>
+                        <span class="badge badge-blue">
+                            {{ tenancy.unit.unit_number }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ tenancy.move_in_date }}
+                    </td>
+
+                    <td>
+                        {{ tenancy.moved_out_date|default:"-" }}
+                    </td>
+
+                    <td>
+
+                        {% if tenancy.status == 'ACTIVE' %}
+                            <span class="badge badge-green">
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="badge badge-gray">
+                                Moved Out
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h3>No History Found</h3>
+            <p>This tenant has no tenancy records.</p>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

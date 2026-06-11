@@ -53,7 +53,7 @@
 /* ── Two-col row (Financials + Occupancy) ── */
 .db-row { margin-bottom: 14px; }
 
-/* Mobile: stacked */
+/* Mobile: stacked (default) */
 .db-row--two,
 .db-row--three {
   display: flex;
@@ -312,3 +312,225 @@ canvas {
 
 .db-ql-title { font-size: 12.5px; font-weight: 600; }
 .db-ql-copy  { font-size: 11px; color: var(--txt-muted); }
+
+/* ============================================
+   OVERRIDES FOR MOBILE (fix propdesk.css conflict)
+   ============================================ */
+/* Force .db-row--three into 2 columns on screens < 768px */
+@media (max-width: 767px) {
+  .db-row--three {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  /* Prevent cards from overflowing */
+  .db-row--three .card {
+    min-width: 0;
+  }
+}
+
+/* On very narrow phones (≤480px), you can optionally make it 1 column if 2 is too tight */
+@media (max-width: 480px) {
+  .db-row--three {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================
+   MOBILE COMPACT MODE (≤ 640px)
+   Reduces vertical height of all cards
+   ============================================ */
+@media (max-width: 640px) {
+
+  /* ── Reduce stat card padding and margins ── */
+  .stat-card {
+    padding: 8px !important;
+  }
+  .stat-card .stat-header {
+    margin-bottom: 4px;
+  }
+  .stat-card .stat-value {
+    font-size: 16px !important;
+  }
+  .stat-card .stat-label {
+    font-size: 9px;
+  }
+  .stat-card .stat-sub {
+    font-size: 8px;
+    margin-top: 0;
+  }
+  .stat-icon {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+  }
+  .stat-trend {
+    font-size: 8px !important;
+    padding: 1px 4px !important;
+  }
+
+  /* ── Reduce gaps between rows ── */
+  .db-row--two, .db-row--three {
+    gap: 8px !important;
+  }
+  .stat-grid {
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* ── Compact card headers and bodies ── */
+  .card-header {
+    padding: 6px 10px !important;
+  }
+  .card-title {
+    font-size: 11px !important;
+  }
+  .card-body {
+    padding: 8px !important;
+  }
+  .card-body--flush {
+    padding: 0 !important;
+  }
+
+  /* ── Monthly Financials: smaller tiles, shorter chart ── */
+  .db-fin-tile {
+    padding: 4px 6px !important;
+  }
+  .db-fin-label {
+    font-size: 8px !important;
+    margin-bottom: 1px;
+  }
+  .db-fin-value {
+    font-size: 11px !important;
+  }
+  .db-fin-currency {
+    font-size: 8px !important;
+  }
+  /* Reduce chart height significantly on mobile */
+  .db-chart-wrap--scrollable canvas {
+    height: 90px !important;
+    min-width: 480px;
+  }
+  .db-chart-legend {
+    margin-bottom: 3px;
+    gap: 5px;
+    font-size: 8px;
+  }
+
+  /* ── Occupancy rows: tighter ── */
+  .db-occ-row {
+    padding: 4px 10px !important;
+    gap: 5px;
+  }
+  .db-occ-label {
+    width: 55px !important;
+    font-size: 9px;
+  }
+  .db-occ-count {
+    font-size: 11px !important;
+    width: 22px;
+  }
+  .db-occ-pct {
+    font-size: 9px;
+    width: 28px;
+  }
+  .progress {
+    height: 3px;
+  }
+  .db-donut-section {
+    padding: 6px 10px;
+  }
+  .db-chart-wrap--sm {
+    height: 80px !important;
+  }
+  .db-chart-wrap--sm canvas {
+    max-width: 100px !important;
+    max-height: 100px !important;
+  }
+
+  /* ── Tables: reduce cell padding, smaller fonts ── */
+  thead th {
+    padding: 4px 6px !important;
+    font-size: 8px !important;
+  }
+  tbody td {
+    padding: 6px 6px !important;
+    font-size: 10px !important;
+  }
+  .avatar {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 8px !important;
+  }
+  .avatar-row {
+    gap: 5px;
+  }
+  .badge {
+    padding: 1px 5px !important;
+    font-size: 8px !important;
+  }
+  .btn-sm {
+    padding: 3px 6px !important;
+    font-size: 9px !important;
+    min-height: 24px !important;
+  }
+
+  /* ── Properties table inside card ── */
+  .db-prop-name {
+    font-size: 10px;
+  }
+  .db-prop-location {
+    font-size: 8px;
+  }
+  .db-progress-inline {
+    gap: 2px;
+  }
+  .db-pct-label {
+    font-size: 8px;
+  }
+  .progress {
+    width: 30px !important;
+  }
+
+  /* ── Empty states ── */
+  .empty-state {
+    padding: 16px 8px !important;
+  }
+  .empty-state i {
+    font-size: 20px;
+  }
+  .empty-state h3 {
+    font-size: 11px;
+  }
+  .empty-state p {
+    font-size: 9px;
+  }
+
+  /* ── Quick links ── */
+  .db-quick-link {
+    padding: 6px 8px !important;
+    gap: 6px;
+  }
+  .db-ql-title {
+    font-size: 10px;
+  }
+  .db-ql-copy {
+    font-size: 8px;
+  }
+  .db-section-label {
+    margin: 8px 0 3px;
+    font-size: 8px;
+  }
+
+  /* ── Role banners ── */
+  .db-banner-body {
+    padding: 6px 10px !important;
+    gap: 6px;
+  }
+  .db-banner-title {
+    font-size: 10px;
+  }
+  .db-banner-copy {
+    font-size: 9px;
+  }
+}
