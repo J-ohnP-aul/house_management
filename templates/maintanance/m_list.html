@@ -1,81 +1,433 @@
 {% extends 'base.html' %}
-{% block title %}Maintenance Requests{% endblock %}
+{% load static %}
+
+{% block title %}Maintenance Requests | Rental Manager{% endblock %}
+{% block topbar_title %}Maintenance{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Maintenance list specific styles (prefix: ml-) */
+  .ml-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media (min-width: 640px) {
+    .ml-stat-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+  }
+  .ml-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ml-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--txt-primary);
+    line-height: 1;
+  }
+  .ml-stat-label {
+    font-size: 11.5px;
+    color: var(--txt-muted);
+  }
+
+  /* Filter bar */
+  .ml-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 16px;
+  }
+  .ml-search {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+  }
+  .ml-search i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--txt-muted);
+    font-size: 13px;
+  }
+  .ml-search input, .ml-filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--surface);
+  }
+  .ml-search input {
+    padding-left: 32px;
+  }
+  .ml-filter-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ml-filter-select {
+    width: auto;
+    min-width: 130px;
+    cursor: pointer;
+  }
+  .ml-filter-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--txt-secondary);
+  }
+  .ml-filter-btn:hover {
+    background: var(--border);
+  }
+  .ml-result-count {
+    font-size: 12px;
+    color: var(--txt-muted);
+    margin-left: auto;
+  }
+
+  /* Mobile cards */
+  .ml-mobile-cards {
+    display: block;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .ml-mobile-cards { display: none; }
+  }
+  .ml-card {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ml-card:last-child { border-bottom: none; }
+  .ml-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .ml-card-id {
+    font-weight: 600;
+    color: var(--brand);
+  }
+  .ml-card-unit {
+    font-size: 12px;
+    color: var(--txt-muted);
+  }
+  .ml-card-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 8px 0;
+  }
+  .ml-card-detail {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .ml-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Desktop table */
+  .ml-desktop-table {
+    display: none;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow-x: auto;
+  }
+  @media (min-width: 640px) {
+    .ml-desktop-table { display: block; }
+  }
+  .ml-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .ml-table th {
+    padding: 12px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--txt-secondary);
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .ml-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .ml-table tr:hover td { background: #FAFBFA; }
+
+  .ml-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .ml-icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--txt-secondary);
+    text-decoration: none;
+  }
+  .ml-icon-btn:hover { background: var(--bg); }
+  .ml-icon-btn.danger:hover { background: var(--red-bg); color: var(--red-txt); }
+
+  /* Priority and status badges (custom sizes) */
+  .badge-priority-high { background: var(--red-bg); color: var(--red-txt); border: 1px solid var(--red-border); }
+  .badge-priority-med { background: var(--amber-bg); color: var(--amber-txt); border: 1px solid var(--amber-border); }
+  .badge-priority-low { background: var(--green-bg); color: var(--green-txt); border: 1px solid var(--green-border); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Maintenance Requests</h2>
-        <a href="{% url 'm_create' %}" class="btn btn-primary">+ New Request</a>
+<div class="maintenance-list-container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>
+        <span class="breadcrumb-current">Maintenance</span>
+      </div>
+      <h1>Maintenance Requests</h1>
+      <p>Track and manage property repairs</p>
     </div>
+    <div class="page-header-actions">
+      <a href="{% url 'm_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Request
+      </a>
+    </div>
+  </div>
 
-    <!-- Search & Filters -->
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-md-4">
-            <input type="text" name="q" class="form-control" placeholder="Search by title, unit, description" value="{{ search_query }}">
-        </div>
-        <div class="col-md-3">
-            <select name="status" class="form-select">
-                <option value="">All Status</option>
-                <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
-                <option value="INPROGRESS" {% if status_filter == 'INPROGRESS' %}selected{% endif %}>In Progress</option>
-                <option value="COMPLETE" {% if status_filter == 'COMPLETE' %}selected{% endif %}>Complete</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="category" class="form-select">
-                <option value="">All Categories</option>
-                <option value="PLUMBING" {% if category_filter == 'PLUMBING' %}selected{% endif %}>Plumbing</option>
-                <option value="ELECTRICAL" {% if category_filter == 'ELECTRICAL' %}selected{% endif %}>Electrical</option>
-                <option value="PAINTING" {% if category_filter == 'PAINTING' %}selected{% endif %}>Painting</option>
-                <option value="WINDOW" {% if category_filter == 'WINDOW' %}selected{% endif %}>Window</option>
-                <option value="GENERAL" {% if category_filter == 'GENERAL' %}selected{% endif %}>General</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-secondary w-100">Filter</button>
-        </div>
-    </form>
+  <!-- Summary Stats -->
+  <div class="ml-stat-grid">
+    <div class="ml-stat-card">
+      <div class="ml-stat-value">{{ total_count|default:maintenance_list|length }}</div>
+      <div class="ml-stat-label">Total Requests</div>
+    </div>
+    <div class="ml-stat-card">
+      <div class="ml-stat-value">{{ pending_count|default:"0" }}</div>
+      <div class="ml-stat-label">Pending</div>
+    </div>
+    <div class="ml-stat-card">
+      <div class="ml-stat-value">{{ in_progress_count|default:"0" }}</div>
+      <div class="ml-stat-label">In Progress</div>
+    </div>
+    <div class="ml-stat-card">
+      <div class="ml-stat-value">{{ completed_count|default:"0" }}</div>
+      <div class="ml-stat-label">Completed</div>
+    </div>
+  </div>
 
-    <!-- Table -->
-    <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Unit</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Request Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for m in maintenance_list %}
-            <tr>
-                <td>{{ m.id }}</td>
-                <td>{{ m.unit.unit_number }}</td>
-                <td>{{ m.title }}</td>
-                <td>{{ m.get_category_display }}</td>
-                <td>
-                    <span class="badge {% if m.priority == 'HIGH' %}bg-danger{% elif m.priority == 'MEDIUM' %}bg-warning{% else %}bg-success{% endif %}">
-                        {{ m.get_priority_display }}
-                    </span>
-                </td>
-                <td>{{ m.get_status_display }}</td>
-                <td>{{ m.request_date|date:"Y-m-d H:i" }}</td>
-                <td>
-                    <a href="{% url 'm_detail' m.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'm_update' m.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'm_delete' m.pk %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8" class="text-center">No maintenance requests found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+  <!-- Filter Bar -->
+  <div class="ml-filter-bar">
+    <div class="ml-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="mlSearchInput" placeholder="Search by title, unit, description..." value="{{ search_query|default:'' }}">
+    </div>
+    <div class="ml-filter-group">
+      <select id="mlStatusFilter" class="ml-filter-select">
+        <option value="">All Status</option>
+        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+        <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+      </select>
+      <select id="mlCategoryFilter" class="ml-filter-select">
+        <option value="">All Categories</option>
+        <option value="PLUMBING" {% if category_filter == 'PLUMBING' %}selected{% endif %}>Plumbing</option>
+        <option value="ELECTRICAL" {% if category_filter == 'ELECTRICAL' %}selected{% endif %}>Electrical</option>
+        <option value="PAINTING" {% if category_filter == 'PAINTING' %}selected{% endif %}>Painting</option>
+        <option value="WINDOW" {% if category_filter == 'WINDOW' %}selected{% endif %}>Window</option>
+        <option value="GENERAL" {% if category_filter == 'GENERAL' %}selected{% endif %}>General</option>
+      </select>
+      <button id="mlApplyFilter" class="ml-filter-btn">Apply</button>
+      <a href="{% url 'm_list' %}" class="ml-filter-btn">Clear</a>
+    </div>
+    <div class="ml-result-count" id="mlResultCount">
+      Showing <span id="mlVisibleCount">{{ maintenance_list|length }}</span> requests
+    </div>
+  </div>
+
+  <!-- Mobile Cards View -->
+  <div class="ml-mobile-cards" id="mlMobileCards">
+    {% for m in maintenance_list %}
+    <div class="ml-card" data-status="{{ m.status }}" data-category="{{ m.category }}" data-search="{{ m.title|lower }} {{ m.unit.unit_number|lower }} {{ m.description|lower }}">
+      <div class="ml-card-header">
+        <span class="ml-card-id">#{{ m.id }}</span>
+        <span class="ml-card-unit">{{ m.unit.unit_number }} · {{ m.unit.property.name }}</span>
+      </div>
+      <div class="ml-card-title">{{ m.title|truncatechars:40 }}</div>
+      <div class="ml-card-detail">
+        <span>{{ m.get_category_display }}</span>
+        <span>
+          {% if m.priority == 'HIGH' %}
+            <span class="badge badge-priority-high">High</span>
+          {% elif m.priority == 'MEDIUM' %}
+            <span class="badge badge-priority-med">Medium</span>
+          {% else %}
+            <span class="badge badge-priority-low">Low</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="ml-card-detail">
+        <span>Status:</span>
+        <span>
+          {% if m.status == 'PENDING' %}
+            <span class="badge badge-amber">Pending</span>
+          {% elif m.status == 'IN_PROGRESS' %}
+            <span class="badge badge-blue">In Progress</span>
+          {% else %}
+            <span class="badge badge-green">Completed</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="ml-card-detail">
+        <span>Requested:</span>
+        <span>{{ m.request_date|date:"d M Y" }}</span>
+      </div>
+      <div class="ml-card-actions">
+        <a href="{% url 'm_detail' m.pk %}" class="tn-action-btn"><i class="fas fa-eye"></i> View</a>
+        <a href="{% url 'm_update' m.pk %}" class="tn-action-btn"><i class="fas fa-edit"></i> Edit</a>
+        <a href="{% url 'm_delete' m.pk %}" class="tn-action-btn tn-action-btn--danger" onclick="return confirm('Delete this request?');"><i class="fas fa-trash"></i> Delete</a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="padding:40px;">
+      <i class="fas fa-tools"></i>
+      <h3>No maintenance requests</h3>
+      <p>Click "New Request" to create one.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Desktop Table -->
+  <div class="ml-desktop-table">
+    <table class="ml-table">
+      <thead>
+        <tr><th>ID</th><th>Unit</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Request Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="mlTableBody">
+        {% for m in maintenance_list %}
+        <tr data-status="{{ m.status }}" data-category="{{ m.category }}" data-search="{{ m.title|lower }} {{ m.unit.unit_number|lower }} {{ m.description|lower }}">
+          <td>{{ m.id }}</td>
+          <td>{{ m.unit.unit_number }}</td>
+          <td>{{ m.title|truncatechars:40 }}</td>
+          <td>{{ m.get_category_display }}</td>
+          <td>
+            <span class="badge {% if m.priority == 'HIGH' %}badge-priority-high{% elif m.priority == 'MEDIUM' %}badge-priority-med{% else %}badge-priority-low{% endif %}">
+              {{ m.get_priority_display }}
+            </span>
+          </td>
+          <td>
+            {% if m.status == 'PENDING' %}
+              <span class="badge badge-amber">Pending</span>
+            {% elif m.status == 'IN_PROGRESS' %}
+              <span class="badge badge-blue">In Progress</span>
+            {% else %}
+              <span class="badge badge-green">Completed</span>
+            {% endif %}
+          </td>
+          <td>{{ m.request_date|date:"d M Y" }}</td>
+          <td>
+            <div class="ml-actions">
+              <a href="{% url 'm_detail' m.pk %}" class="ml-icon-btn" title="View"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'm_update' m.pk %}" class="ml-icon-btn" title="Edit"><i class="fas fa-edit"></i></a>
+              <a href="{% url 'm_delete' m.pk %}" class="ml-icon-btn danger" title="Delete" onclick="return confirm('Delete this request?');"><i class="fas fa-trash"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty-state" style="text-align:center;">No maintenance requests found.</td></tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
+
+<script>
+  // Filter logic (status, category, search) without page reload
+  const searchInput = document.getElementById('mlSearchInput');
+  const statusSelect = document.getElementById('mlStatusFilter');
+  const categorySelect = document.getElementById('mlCategoryFilter');
+  const applyBtn = document.getElementById('mlApplyFilter');
+  const clearLink = document.querySelector('a[href="{% url 'm_list' %}"]');
+  const mobileCards = document.querySelectorAll('#mlMobileCards .ml-card');
+  const tableRows = document.querySelectorAll('#mlTableBody tr');
+  const visibleSpan = document.getElementById('mlVisibleCount');
+
+  function filterItems() {
+    let search = searchInput.value.trim().toLowerCase();
+    let status = statusSelect.value;
+    let category = categorySelect.value;
+    let visible = 0;
+
+    const matches = (el) => {
+      let searchMatch = search === '' || el.dataset.search.includes(search);
+      let statusMatch = status === '' || el.dataset.status === status;
+      let categoryMatch = category === '' || el.dataset.category === category;
+      return searchMatch && statusMatch && categoryMatch;
+    };
+
+    mobileCards.forEach(card => {
+      if (matches(card)) {
+        card.style.display = '';
+        visible++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    tableRows.forEach(row => {
+      if (matches(row)) {
+        row.style.display = '';
+        if (row.cells && row.cells.length > 1) visible++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    visibleSpan.innerText = visible;
+  }
+
+  applyBtn.addEventListener('click', () => filterItems());
+  searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') filterItems(); });
+  // optional: live search? Let's keep explicit apply for performance.
+</script>
 {% endblock %}

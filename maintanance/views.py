@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import Maintenance
 from .forms import MaintenanceForm   # fixed spelling
 
+
 @login_required
 def maintenance_list(request):
     queryset = Maintenance.objects.all()
@@ -24,8 +25,17 @@ def maintenance_list(request):
     if category_filter:
         queryset = queryset.filter(category=category_filter)
 
+    total_count = queryset.count()
+    pending_count = queryset.filter(status='PENDING').count()
+    in_progress_count = queryset.filter(status='IN_PROGRESS').count()
+    completed_count = queryset.filter(status='COMPLETED').count()
+
     return render(request, 'maintanance/m_list.html', {
         'maintenance_list': queryset,
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'in_progress_count': in_progress_count,
+        'completed_count': completed_count,
         'search_query': search_query,
         'status_filter': status_filter,
         'category_filter': category_filter,

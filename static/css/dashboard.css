@@ -149,12 +149,66 @@
 .db-legend-dot--amber  { background: var(--amber); }
 .db-legend-dot--gray   { background: var(--txt-muted); }
 
+/* Default chart container (desktop) */
 .db-chart-wrap {
   position: relative;
   width: 100%;
   height: 160px;
 }
 .db-chart-wrap--sm { height: 130px; }
+
+/* MOBILE: scrollable bar chart */
+.db-chart-wrap--scrollable {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+.db-chart-wrap--scrollable canvas {
+  min-width: 560px;
+  height: 200px !important;
+  width: auto !important;
+  display: block;
+}
+
+/* MOBILE: donut chart adjustments */
+@media (max-width: 640px) {
+  .db-chart-wrap--sm {
+    height: 180px !important;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .db-chart-wrap--sm canvas {
+    max-width: 200px !important;
+    max-height: 200px !important;
+  }
+  .db-donut-section {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .db-donut-section .db-chart-legend {
+    order: 2;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Hide donut chart on very small phones (≤480px) to save space */
+@media (max-width: 480px) {
+  .db-donut-section .db-chart-wrap--sm {
+    display: none;
+  }
+  .db-donut-section .db-chart-legend {
+    margin-top: 0;
+  }
+}
+
+/* Improve touch targets for chart tooltips */
+canvas {
+  touch-action: manipulation;
+}
 
 /* ── Occupancy rows ── */
 .db-occ-rows {}
@@ -201,6 +255,15 @@
   gap: 5px;
 }
 .db-pct-label { font-size: 11px; color: var(--txt-muted); }
+
+/* Make properties table horizontally scrollable on mobile */
+.db-properties-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.db-properties-table-wrap table {
+  min-width: 280px;
+}
 
 /* ── Role banners ── */
 .db-banner { border-left: 3px solid var(--border); margin-bottom: 14px; }

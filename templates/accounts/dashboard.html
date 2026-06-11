@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
@@ -82,7 +81,7 @@
           <i class="fas fa-chart-bar db-icon db-icon--brand" aria-hidden="true"></i>
           Monthly Financials
         </span>
-        <button class="btn btn-secondary btn-sm">This Month</button>
+        <span class="btn btn-secondary btn-sm" style="cursor: default;">{{ current_month|default:"This Month" }}</span>
       </div>
       <div class="card-body">
         <!-- Mini metric tiles -->
@@ -108,8 +107,8 @@
           <span><span class="db-legend-dot db-legend-dot--green"></span> Income</span>
           <span><span class="db-legend-dot db-legend-dot--red"></span> Expenses</span>
         </div>
-        <!-- Bar chart canvas -->
-        <div class="db-chart-wrap">
+        <!-- Bar chart canvas (horizontally scrollable on mobile) -->
+        <div class="db-chart-wrap db-chart-wrap--scrollable">
           <canvas id="finChart"
             role="img"
             aria-label="Bar chart of monthly income and expenses"
@@ -159,7 +158,7 @@
       </div>
 
       <div class="db-donut-section">
-        <div class="db-chart-legend">
+        <div class="db-chart-legend" id="donut-legend">
           <span id="legend-occupied"><span class="db-legend-dot db-legend-dot--round db-legend-dot--green"></span> Occupied {{ occupancy_rate|default:"0" }}%</span>
           <span id="legend-reserved"><span class="db-legend-dot db-legend-dot--round db-legend-dot--amber"></span> Reserved {{ reserved_rate|default:"0" }}%</span>
           <span id="legend-vacant"><span class="db-legend-dot db-legend-dot--round db-legend-dot--gray"></span> Vacant {{ vacant_rate|default:"0" }}%</span>
@@ -289,8 +288,8 @@
       </div>
       <div class="card-body card-body--flush">
         {% if recent_properties %}
-          <div class="table-wrap">
-            <table>
+          <div class="table-wrap db-properties-table-wrap">
+            <tr>
               <thead>
                 <tr><th>Name</th><th>Units</th><th>Occ.</th></tr>
               </thead>
@@ -399,16 +398,19 @@
 (function () {
   // ── Bar chart: Monthly Financials ──
   const finCanvas = document.getElementById('finChart');
+  let finChartInstance = null;
   if (finCanvas) {
-    const income   = JSON.parse(finCanvas.dataset.income   || '[]');
-    const expenses = JSON.parse(finCanvas.dataset.expenses || '[]');
-    const labels   = JSON.parse(finCanvas.dataset.labels   || '["Jan","Feb","Mar","Apr","May","Jun"]');
-    new Chart(finCanvas, {
+    const income = JSON.parse(finCanvas.dataset.income || '[]');
+    // Force expenses to be positive (absolute values)
+    const expensesRaw = JSON.parse(finCanvas.dataset.expenses || '[]');
+    const expenses = expensesRaw.map(v => Math.abs(v));
+    const labels = JSON.parse(finCanvas.dataset.labels || '["Jan","Feb","Mar","Apr","May","Jun"]');
+    finChartInstance = new Chart(finCanvas, {
       type: 'bar',
       data: {
         labels,
         datasets: [
-          { label: 'Income',   data: income,   backgroundColor: '#1A6B4A', borderRadius: 3 },
+          { label: 'Income', data: income, backgroundColor: '#1A6B4A', borderRadius: 3 },
           { label: 'Expenses', data: expenses, backgroundColor: '#B93B3B', borderRadius: 3 }
         ]
       },
@@ -428,6 +430,7 @@
         }
       }
     });
+    window.finChartInstance = finChartInstance;
   }
 
   // ── Donut chart: Occupancy ──
@@ -436,7 +439,7 @@
   if (occCanvas) {
     const occupied = parseInt(occCanvas.dataset.occupied || '0');
     const reserved = parseInt(occCanvas.dataset.reserved || '0');
-    const vacant   = parseInt(occCanvas.dataset.vacant   || '0');
+    const vacant = parseInt(occCanvas.dataset.vacant || '0');
     occChartInstance = new Chart(occCanvas, {
       type: 'doughnut',
       data: {
@@ -451,32 +454,40 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '68%',
+        cutout: '65%',
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} units` } }
         }
       }
     });
+    window.occChartInstance = occChartInstance;
   }
 
+  // ── Responsive: redraw charts on resize ──
+  let resizeTimeout;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      if (window.finChartInstance) window.finChartInstance.resize();
+      if (window.occChartInstance) window.occChartInstance.resize();
+    }, 150);
+  });
+
+  // ── Live stats refresh (occupancy numbers) ──
   const statsContainer = document.getElementById('dashboard-stats');
   const statsUrl = statsContainer?.dataset.statsUrl;
 
   const refreshUnitStats = async () => {
-    if (!statsUrl) {
-      return;
-    }
-
+    if (!statsUrl) return;
     try {
       const response = await fetch(statsUrl, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
-      if (!response.ok) {
-        throw new Error('Unable to fetch dashboard stats');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch stats');
       const stats = await response.json();
+
+      // Update DOM
       document.getElementById('occupied-units-summary').textContent = stats.occupied_units;
       document.getElementById('total-units-count').textContent = stats.total_units_count;
       document.getElementById('vacant-units-summary').textContent = stats.vacant_units;
@@ -490,13 +501,13 @@
       document.getElementById('occupied-progress').style.width = `${stats.occupancy_rate}%`;
       document.getElementById('reserved-progress').style.width = `${stats.reserved_rate}%`;
       document.getElementById('vacant-progress').style.width = `${stats.vacant_rate}%`;
-      document.getElementById('legend-occupied').textContent = `Occupied ${stats.occupancy_rate}%`;
-      document.getElementById('legend-reserved').textContent = `Reserved ${stats.reserved_rate}%`;
-      document.getElementById('legend-vacant').textContent = `Vacant ${stats.vacant_rate}%`;
+      document.getElementById('legend-occupied').innerHTML = `<span class="db-legend-dot db-legend-dot--round db-legend-dot--green"></span> Occupied ${stats.occupancy_rate}%`;
+      document.getElementById('legend-reserved').innerHTML = `<span class="db-legend-dot db-legend-dot--round db-legend-dot--amber"></span> Reserved ${stats.reserved_rate}%`;
+      document.getElementById('legend-vacant').innerHTML = `<span class="db-legend-dot db-legend-dot--round db-legend-dot--gray"></span> Vacant ${stats.vacant_rate}%`;
 
-      if (occChartInstance) {
-        occChartInstance.data.datasets[0].data = [stats.occupied_units, stats.reserved_units, stats.vacant_units];
-        occChartInstance.update();
+      if (window.occChartInstance) {
+        window.occChartInstance.data.datasets[0].data = [stats.occupied_units, stats.reserved_units, stats.vacant_units];
+        window.occChartInstance.update();
       }
     } catch (error) {
       console.warn('Dashboard stats refresh failed:', error);

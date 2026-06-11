@@ -124,43 +124,33 @@ def reservation_update(request, pk):
         form = ReservationForm(instance=reservation)
     return render(request, 'tenants/reservation_form.html', {'form': form})
 
+from django.db import transaction
+
 @login_required
 def reservation_convert(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk, status=Reservation.PENDING)
-    
     if request.method == 'POST':
-        # 1. Create or get existing tenant (using phone_no as unique identifier)
-        tenant= Tenant.objects.get_or_create(
-            phone_no=reservation.phone_no,
-            defaults={
-                'full_name': reservation.full_name,
-                'id_no': reservation.id_no or '',
-            }
-        )
-        # tenant.save()
-        
-        # 2. Create the active tenancy 
-        tenancy = Tenancy.objects.get_or_create(
-            tenant=tenant,
-            unit=reservation.unit,
-            move_in_date=reservation.expected_movein_date,
-            status=Tenancy.ACTIVE
-        )
-        
-        # 3. Update reservation without triggering full_clean() or save()
-        #    Use queryset update to bypass model validation
-        Reservation.objects.filter(pk=reservation.pk).update(
-            status=Reservation.CONVERTED,
-            tenancy=tenancy
-        )
-        reservation.unit.status = Unit.OCCUPIED
-        reservation.unit.save(update_fields=['status'])
-        
-        # (Optional) If you want to revert unit status to VACANT in case of any issue, but everything is fine now.
+        with transaction.atomic():
+            tenant, _ = Tenant.objects.get_or_create(
+                phone_no=reservation.phone_no,
+                defaults={
+                    'full_name': reservation.full_name,
+                    'id_no': reservation.id_no or '',
+                }
+            )
+            tenancy = Tenancy.objects.create(
+                tenant=tenant,
+                unit=reservation.unit,
+                move_in_date=reservation.expected_movein_date,
+                status=Tenancy.ACTIVE
+            )
+            Reservation.objects.filter(pk=reservation.pk).update(
+                status=Reservation.CONVERTED,
+                tenancy=tenancy
+            )
         messages.success(request, f'Reservation converted to tenancy for {tenant.full_name}.')
-        return redirect('tenancy_list')  # or to 'tenant_detail' or 'tenancy_detail'
+        return redirect('tenancy_list')
     
-    # GET request – show confirmation page
     return render(request, 'tenants/reservation_convert_confirm.html', {'reservation': reservation})
 
 @login_required
