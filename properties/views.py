@@ -108,8 +108,19 @@ def unit_create(request):
             return redirect('unit_list')
     else:
         form = UnitForm()
-    return render(request, 'units/u_create.html', {'form':form})    
+    return render(request, 'units/unit_form.html', {'form': form})
 
+@login_required
+def unit_edit(request, pk):
+    unit = get_object_or_404(Unit, pk=pk)
+    if request.method == 'POST':
+        form = UnitForm(request.POST, instance=unit)
+        if form.is_valid():
+            form.save()
+            return redirect('unit_list')
+    else:
+        form = UnitForm(instance=unit)
+    return render(request, 'units/unit_form.html', {'form': form})
 def unit_detail(request, id):
     unit = get_object_or_404(Unit, id=id)
     # tenant = 
